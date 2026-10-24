@@ -7,6 +7,7 @@ import { Mark } from "./marks";
 type Pair = { id: string; host: string; brand: string; original: string; redesign: string };
 type Totals = { original: number; redesign: number };
 type Next = { pair: Pair | null; redesignFirst?: boolean; remaining?: number; totals: Totals };
+type Ballot = { id: string; brand: string; redesignFirst: boolean; picked: "original" | "redesign"; original: string };
 
 const SEEN_KEY = "glowup-voted";
 const seen = (): string[] => {
@@ -19,7 +20,7 @@ const seen = (): string[] => {
 
 const W = 1440, H = 703;
 
-function Frame({ side, kind, src, label }: { side: string; kind: "image" | "html"; src: string; label: string }) {
+function Frame({ side, kind, src }: { side: string; kind: "image" | "html"; src: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
   useEffect(() => {
@@ -29,28 +30,33 @@ function Frame({ side, kind, src, label }: { side: string; kind: "image" | "html
     return () => ro.disconnect();
   }, []);
   return (
-    <div ref={ref} className="relative w-full overflow-hidden rounded-frame border border-rule bg-sheet" style={{ aspectRatio: `${W} / ${H}` }} aria-label={label}>
+    <div ref={ref} className="relative w-full overflow-hidden rounded-frame border border-rule bg-sheet" style={{ aspectRatio: `${W} / ${H}` }}>
       <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left" }} className="pointer-events-none">
         {kind === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt="" className="block h-full w-full object-cover object-top" />
+          <img src={src} alt={`Homepage ${side}`} className="block h-full w-full object-cover object-top" />
         ) : (
-          <iframe title={`Homepage ${side}`} srcDoc={src} sandbox="" tabIndex={-1} className="h-full w-full border-0" />
+          <iframe title={`Homepage ${side}`} srcDoc={src} sandbox="" tabIndex={-1} scrolling="no" className="h-full w-full border-0" />
         )}
       </div>
     </div>
   );
 }
 
+/** Blind vote: nothing is revealed until the voter finishes. Then every pair is unmasked. */
 export function VoteView() {
   const [next, setNext] = useState<Next | null>(null);
-  const [result, setResult] = useState<{ pickedRedesign: boolean; pair: Totals; totals: Totals } | null>(null);
+  const [ballots, setBallots] = useState<Ballot[]>([]);
+  const [finished, setFinished] = useState(false);
+  const [totals, setTotals] = useState<Totals | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    setResult(null);
     const r = await fetch(`/api/vote?seen=${encodeURIComponent(seen().join(","))}`, { cache: "no-store" });
-    setNext(await r.json());
+    const j = (await r.json()) as Next;
+    setNext(j);
+    setTotals(j.totals);
+    if (!j.pair) setFinished(true);
   }, []);
 
   useEffect(() => {
@@ -63,87 +69,104 @@ export function VoteView() {
     try {
       const r = await fetch("/api/vote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: next.pair.id, pick }) });
       const j = await r.json();
+      if (j.totals) setTotals(j.totals);
       try {
         localStorage.setItem(SEEN_KEY, JSON.stringify([...seen(), next.pair.id].slice(-200)));
       } catch {
         /* ignore */
       }
-      setResult({ pickedRedesign: pick === "redesign", pair: j.pair, totals: j.totals });
+      setBallots((b) => [...b, { id: next.pair!.id, brand: next.pair!.brand, redesignFirst: !!next.redesignFirst, picked: pick, original: next.pair!.original }]);
+      await load();
     } finally {
       setBusy(false);
     }
   }
 
-  const totals = result?.totals ?? next?.totals;
-  const totalVotes = totals ? totals.original + totals.redesign : 0;
-  const pct = totals && totalVotes ? Math.round((totals.redesign / totalVotes) * 100) : null;
-
   if (!next) return <p className="text-graphite">Loading a pair…</p>;
 
-  const p = next.pair;
-  const sides = p
-    ? next.redesignFirst
-      ? [{ kind: "html" as const, src: p.redesign, isRedesign: true }, { kind: "image" as const, src: p.original, isRedesign: false }]
-      : [{ kind: "image" as const, src: p.original, isRedesign: false }, { kind: "html" as const, src: p.redesign, isRedesign: true }]
-    : [];
+  if (finished) {
+    const picked = ballots.filter((b) => b.picked === "redesign").length;
+    const all = totals ? totals.original + totals.redesign : 0;
+    const pct = totals && all ? Math.round((totals.redesign / all) * 100) : null;
+    return (
+      <div>
+        <h2 className="display text-2xl">The reveal</h2>
+        {ballots.length ? (
+          <p className="mt-3 text-lg">
+            You picked the Glowup redesign in <Mark>{picked}</Mark> of {ballots.length} pairs.
+          </p>
+        ) : (
+          <p className="mt-3 text-lg">You&apos;ve already voted on every pair. Thanks.</p>
+        )}
+        {pct !== null && (
+          <p className="mt-2 text-graphite">
+            All voters so far picked the redesign <Mark>{pct}%</Mark> of the time, over <span className="num">{all}</span> votes.
+          </p>
+        )}
+        <ul className="mt-8 grid gap-4">
+          {ballots.map((b) => {
+            const redesignLetter = b.redesignFirst ? "A" : "B";
+            const pickedLetter = (b.picked === "redesign") === b.redesignFirst ? "A" : "B";
+            return (
+              <li key={b.id} className="grid items-center gap-4 border-t border-rule pt-4 sm:grid-cols-[160px_1fr]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={b.original} alt={`Real homepage of ${b.brand}`} className="aspect-[16/8] w-full rounded-control border border-rule object-cover object-top" />
+                <p>
+                  <span className="font-semibold">{b.brand}</span>: homepage {redesignLetter} was the Glowup redesign, {redesignLetter === "A" ? "B" : "A"} was the real site. You picked{" "}
+                  {pickedLetter}
+                  {b.picked === "redesign" ? ", the redesign." : ", the real site."}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+        <Link href="/" className="mt-8 inline-block rounded-control border-[1.5px] border-ink bg-ink px-6 py-3 font-semibold text-sheet hover:bg-graphite">
+          Glow up a site
+        </Link>
+      </div>
+    );
+  }
+
+  const p = next.pair!;
+  const sides = next.redesignFirst
+    ? [{ kind: "html" as const, src: p.redesign, isRedesign: true }, { kind: "image" as const, src: p.original, isRedesign: false }]
+    : [{ kind: "image" as const, src: p.original, isRedesign: false }, { kind: "html" as const, src: p.redesign, isRedesign: true }];
 
   return (
     <div>
       <p className="max-w-[70ch] text-lg">
         Each pair shows the same business twice. One is its real homepage, the other is a concept redesign by Glowup, not affiliated with the business. Pick the one
-        that looks better.
+        that looks better. We reveal which is which at the end.
       </p>
-      {pct !== null && (
-        <p className="mt-3 text-graphite">
-          So far, voters picked the redesign <Mark>{pct}%</Mark> of the time, over <span className="num">{totalVotes}</span> votes.
-        </p>
-      )}
-
-      {!p ? (
-        <p className="mt-10 text-lg">
-          You&apos;ve voted on every pair. Thanks.{" "}
-          <Link href="/" className="underline underline-offset-4">
-            Glow up a site
-          </Link>
-        </p>
-      ) : (
-        <>
-          <h2 className="display mt-10 text-2xl">{p.brand}</h2>
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            {sides.map((s, i) => {
-              const letter = i === 0 ? "A" : "B";
-              return (
-                <figure key={letter}>
-                  <figcaption className="mb-2 flex items-baseline justify-between font-semibold">
-                    <span>Homepage {letter}</span>
-                    {result && <span className={s.isRedesign ? "text-redline" : "text-graphite"}>{s.isRedesign ? "Glowup redesign" : "The real site"}</span>}
-                  </figcaption>
-                  <Frame side={letter} kind={s.kind} src={s.src} label={`Homepage ${letter}`} />
-                  {!result && (
-                    <button
-                      onClick={() => void vote(s.isRedesign ? "redesign" : "original")}
-                      disabled={busy}
-                      className="mt-3 w-full rounded-control border-[1.5px] border-ink bg-highlight px-4 py-3 font-semibold hover:brightness-95 disabled:opacity-60"
-                    >
-                      {letter} looks better
-                    </button>
-                  )}
-                </figure>
-              );
-            })}
-          </div>
-          {result && (
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <p className="text-lg">
-                You picked {result.pickedRedesign ? "the redesign" : "the real site"}. For this business: redesign <span className="num">{result.pair.redesign}</span>, real site{" "}
-                <span className="num">{result.pair.original}</span>.
-              </p>
-              <button onClick={() => void load()} className="rounded-control border-[1.5px] border-ink bg-sheet px-5 py-2 font-semibold">
-                Next pair
+      <div className="mt-10 flex flex-wrap items-baseline justify-between gap-4">
+        <h2 className="display text-2xl">{p.brand}</h2>
+        <span className="text-graphite">
+          Pair <span className="num">{ballots.length + 1}</span>
+          {typeof next.remaining === "number" ? <> of <span className="num">{ballots.length + 1 + next.remaining}</span></> : null}
+        </span>
+      </div>
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        {sides.map((s, i) => {
+          const letter = i === 0 ? "A" : "B";
+          return (
+            <figure key={`${p.id}-${letter}`}>
+              <figcaption className="mb-2 font-semibold">Homepage {letter}</figcaption>
+              <Frame side={letter} kind={s.kind} src={s.src} />
+              <button
+                onClick={() => void vote(s.isRedesign ? "redesign" : "original")}
+                disabled={busy}
+                className="mt-3 w-full rounded-control border-[1.5px] border-ink bg-ink px-4 py-3 font-semibold text-sheet hover:bg-graphite disabled:opacity-60"
+              >
+                {letter} looks better
               </button>
-            </div>
-          )}
-        </>
+            </figure>
+          );
+        })}
+      </div>
+      {ballots.length > 0 && (
+        <button onClick={() => setFinished(true)} className="mt-6 underline underline-offset-4 hover:text-ink">
+          Finish and reveal
+        </button>
       )}
     </div>
   );

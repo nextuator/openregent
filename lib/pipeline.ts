@@ -42,3 +42,26 @@ export async function runAll(url: string, log: (s: string) => void = console.log
   void _m;
   return { url, meta, audit: a, content, direction: d, tokens: t, html, report, viewportJpeg, fullJpeg };
 }
+
+/** Re-does concept, tokens and page from a saved run (no new capture, no new direction call). */
+export async function regenerate(
+  saved: Pick<FullRun, "url" | "meta" | "audit" | "content" | "direction">,
+  avoid: string[],
+  log: (s: string) => void = console.log,
+): Promise<Omit<FullRun, "viewportJpeg" | "fullJpeg">> {
+  const { pickConcept } = await import("./concept");
+  const d: Direction = { ...saved.direction, concept: undefined };
+  d.concept = pickConcept(d, avoid).id;
+  log(`concept: ${d.concept}`);
+  const t = await tokens(d, saved.audit);
+  log(`tokens: ${t.tokens.font.display} / ${t.tokens.font.body}`);
+  let css = "", body = "", report: PageReport | undefined;
+  for await (const ev of page(t, d, saved.content, saved.meta.finalUrl)) {
+    if (ev.type === "status") log(ev.message);
+    if (ev.type === "final") ({ css, body, report } = ev);
+  }
+  if (!report) throw new Error("page did not finish");
+  log(`page: violations first pass ${report.firstPass.length}, after retry ${report.afterRetry.length}, auto-fixed ${report.autoFixed.length}`);
+  const html = assembleDocument({ lang: saved.content.lang?.split("-")[0] || "en", brand: d.brand.name, tokensCss: t.css, fontsHref: t.fontsHref, css, body });
+  return { ...saved, direction: d, tokens: t, html, report };
+}

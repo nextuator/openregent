@@ -1,7 +1,7 @@
 /* npm run prerun -- <url> [<url> …]  →  public/runs/<slug>/{run.json,before.jpg,before-full.jpg} + public/runs/index.json */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
-import { runAll } from "../lib/pipeline";
+import { regenerate, runAll } from "../lib/pipeline";
 
 function loadEnv() {
   const file = path.join(process.cwd(), ".env.local");
@@ -17,7 +17,9 @@ const slugify = (url: string) =>
 
 async function main() {
   loadEnv();
-  const urls = process.argv.slice(2);
+  const reuse = process.argv.includes("--reuse");
+  const urls = process.argv.slice(2).filter((a) => a !== "--reuse");
+  const used: string[] = [];
   if (!urls.length) throw new Error("Usage: npm run prerun -- <url> [<url> …]");
   const root = path.join(process.cwd(), "public/runs");
   mkdirSync(root, { recursive: true });
@@ -28,14 +30,24 @@ async function main() {
     const slug = slugify(url);
     console.log(`\n== ${url} → ${slug}`);
     try {
-      const r = await runAll(url, (s) => console.log(`  ${s}`));
       const dir = path.join(root, slug);
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(path.join(dir, "before.jpg"), r.viewportJpeg);
-      writeFileSync(path.join(dir, "before-full.jpg"), r.fullJpeg);
-      const { viewportJpeg: _v, fullJpeg: _f, ...rest } = r;
-      void _v;
-      void _f;
+      const log = (s: string) => console.log(`  ${s}`);
+      let rest;
+      if (reuse && existsSync(path.join(dir, "run.json"))) {
+        const saved = JSON.parse(readFileSync(path.join(dir, "run.json"), "utf8"));
+        rest = await regenerate(saved, used.slice(-3), log);
+      } else {
+        const r = await runAll(url, log);
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(path.join(dir, "before.jpg"), r.viewportJpeg);
+        writeFileSync(path.join(dir, "before-full.jpg"), r.fullJpeg);
+        const { viewportJpeg: _v, fullJpeg: _f, ...fresh } = r;
+        void _v;
+        void _f;
+        rest = fresh;
+      }
+      const r = rest;
+      if (r.direction.concept) used.push(r.direction.concept);
       writeFileSync(path.join(dir, "run.json"), JSON.stringify({ ...rest, viewport: `/runs/${slug}/before.jpg`, full: `/runs/${slug}/before-full.jpg` }));
       const entry = { slug, url: r.meta.finalUrl, name: r.direction.brand.name };
       const i = index.findIndex((e) => e.slug === slug);

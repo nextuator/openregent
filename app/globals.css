@@ -7,15 +7,15 @@
   --color-*: initial;
   --color-transparent: transparent;
   --color-current: currentColor;
-  --color-paper: #eef0f2;
+  --color-paper: #f3f1ec;
   --color-sheet: #ffffff;
-  --color-ink: #000000;
-  --color-graphite: #4a4f57;
-  --color-rule: #c8ccd2;
+  --color-ink: #141414;
+  --color-graphite: #55524c;
+  --color-rule: #d9d4ca;
   --color-highlight: #ffe04a;
-  --color-redline: #d0213b;
+  --color-redline: #c8102e;
 
-  /* --gl-sans / --gl-serif are set by next/font/google (Instrument Sans, Instrument Serif) */
+  /* --gl-sans / --gl-serif are set by next/font/google (Inter, Fraunces) */
   --font-sans: var(--gl-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--gl-serif), Georgia, serif;
 
@@ -44,7 +44,8 @@
   html { background: var(--color-paper); color: var(--color-ink); }
   body { font-family: var(--gl-sans), ui-sans-serif, system-ui, sans-serif; font-size: var(--text-base); }
   :focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
-  .display { font-family: var(--gl-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.015em; line-height: 0.98; }
+  .display { font-family: var(--gl-serif), Georgia, serif; font-weight: 600; letter-spacing: -0.02em; line-height: 0.98; font-variation-settings: "SOFT" 50, "opsz" 144; }
+  .hl { background: linear-gradient(transparent 58%, var(--color-highlight) 58%, var(--color-highlight) 92%, transparent 92%); padding: 0 0.06em; }
   .num { font-variant-numeric: tabular-nums; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

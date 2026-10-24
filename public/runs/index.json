@@ -1,22 +1,22 @@
 [
   {
-    "slug": "zum-isaak-ch",
-    "url": "https://zum-isaak.ch/",
-    "name": "Zum Isaak"
+    "slug": "stadtkeller-basel-ch",
+    "url": "https://www.stadtkeller-basel.ch/",
+    "name": "Stadtkeller Basel"
+  },
+  {
+    "slug": "torstuebli-ch",
+    "url": "https://www.torstuebli.ch/",
+    "name": "Torstübli"
+  },
+  {
+    "slug": "restaurant-schnabel-ch",
+    "url": "https://www.restaurant-schnabel.ch/",
+    "name": "Restaurant Schnabel"
   },
   {
     "slug": "baeckerei-bumann-ch",
     "url": "https://www.baeckerei-bumann.ch/",
     "name": "Bäckerei Bumann GmbH"
-  },
-  {
-    "slug": "kaffeemacher-ch",
-    "url": "https://kaffeemacher.ch/",
-    "name": "Kaffeemacher.ch"
-  },
-  {
-    "slug": "confiserie-bachmann-ch",
-    "url": "https://www.confiserie-bachmann.ch/",
-    "name": "Confiserie Bachmann"
   }
 ]

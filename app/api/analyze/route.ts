@@ -55,11 +55,11 @@ export async function POST(req: Request) {
           if (/credit|quota|limit|payment|unauthori|api key/i.test(`${e.message} ${e.detail}`)) {
             void notify("gaffa_error", `${e.message}: ${e.detail ?? ""}`, "high");
           }
-          send({ type: "error", code: "capture", message: "Couldn't open that site. Check the address or pick a saved glow-up below." });
+          send({ type: "error", code: "capture", message: "Couldn't open that site. Check the address, or vote on existing glow-ups." });
         } else {
           console.error("[analyze] failed", e);
           void notify("server_error", `analyze failed: ${e instanceof Error ? e.message : String(e)}`);
-          send({ type: "error", code: "server", message: "Something went wrong while measuring the site. Try again or pick a saved glow-up below." });
+          send({ type: "error", code: "server", message: "Something went wrong while measuring the site. Try again, or vote on existing glow-ups." });
         }
       } finally {
         controller.close();

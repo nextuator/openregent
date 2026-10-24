@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Instrument_Serif } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import { APP_NAME, APP_URL } from "@/lib/config";
 import "./globals.css";
 
-const sans = Instrument_Sans({ variable: "--gl-sans", subsets: ["latin"], axes: ["wdth"] });
-const serif = Instrument_Serif({ variable: "--gl-serif", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
+const sans = Inter({ variable: "--gl-sans", subsets: ["latin"] });
+const serif = Fraunces({ variable: "--gl-serif", subsets: ["latin"], axes: ["opsz", "SOFT"], style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),

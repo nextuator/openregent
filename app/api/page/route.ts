@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         } else {
           console.error("[page] failed", e instanceof Error ? e.message : e);
           void notify("server_error", `page failed: ${e instanceof Error ? e.message.slice(0, 160) : "unknown"}`);
-          send({ type: "error", code: "server", message: "The redesign didn't finish. Try again or pick a saved glow-up below." });
+          send({ type: "error", code: "server", message: "The redesign didn't finish. Try again, or vote on existing glow-ups." });
         }
       } finally {
         controller.close();

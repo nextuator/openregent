@@ -22,7 +22,7 @@ export function Limits() {
           You have <span className="num font-semibold text-ink">{left}</span> of {l.ipLimit} live glow-ups left today. Each website can be glowed up at most 3 times.
         </>
       ) : (
-        <>You&apos;ve used your {l.ipLimit} live glow-ups for today. The saved glow-ups and the vote are always open.</>
+        <>You&apos;ve used your {l.ipLimit} live glow-ups for today. The vote is always open.</>
       )}
     </p>
   );

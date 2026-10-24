@@ -45,7 +45,7 @@ export async function checkRunCap(req: Request, host: string) {
   }
   if (l.ipUsed >= IP_LIMIT) {
     void notify("soft_cap", `A visitor used all ${IP_LIMIT} live glow-ups for today.`);
-    throw new GuardError("rate_limited", `You've used your ${IP_LIMIT} live glow-ups for today. The saved glow-ups and the vote are always open.`, 429);
+    throw new GuardError("rate_limited", `You've used your ${IP_LIMIT} live glow-ups for today. The vote is always open.`, 429);
   }
   const k = ipKey(ipOf(req));
   const n = await redis<number>(["INCR", k]).catch(() => 0);

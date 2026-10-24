@@ -1,32 +1,68 @@
-import { UrlForm } from "@/components/UrlForm";
-import { Gallery } from "@/components/Gallery";
-import { Limits } from "@/components/Limits";
 import Link from "next/link";
+import { Limits } from "@/components/Limits";
+import { ProofCard } from "@/components/ProofCard";
+import { UrlForm } from "@/components/UrlForm";
+
+const METHOD = [
+  { n: 1, t: "Audit", d: "We open the real site and count every colour, font, radius and shadow in its CSS." },
+  { n: 2, t: "Target marks", d: "Seven axes, from warm to cool and dense to airy: where it is now, where it should go." },
+  { n: 3, t: "Design tokens", d: "One small set of colours, fonts and spacing, checked for contrast in code." },
+  { n: 4, t: "One source", d: "A redesigned homepage, a post and a slide, all from the same tokens." },
+];
 
 export default function Home() {
   return (
-    <main className="mx-auto max-w-[1280px] px-4 py-16 sm:px-8 sm:py-24">
-      <h1 className="display max-w-[14ch] text-3xl sm:text-hero">Show any local business its better website.</h1>
-      <div className="relative mt-10">
-        <UrlForm />
-      </div>
-      <p className="mt-4 text-graphite">Try a bakery, a bike shop or a dentist in Basel.</p>
-      <div className="mt-2">
-        <Limits />
-      </div>
-
-      <section className="mt-16 flex flex-wrap items-center gap-4 rounded-frame border border-rule bg-sheet p-6">
-        <p className="text-lg">Real site or redesign? Vote blind on which homepage looks better.</p>
-        <Link href="/vote" className="rounded-control border-[1.5px] border-ink bg-highlight px-5 py-2 font-semibold hover:brightness-95">
-          Start voting
+    <main className="mx-auto max-w-[1280px] px-4 sm:px-8">
+      <header className="flex items-baseline justify-between border-b border-rule py-5">
+        <span className="display text-xl">Glowup</span>
+        <Link href="/vote" className="text-graphite underline-offset-4 hover:text-ink hover:underline">
+          Vote
         </Link>
+      </header>
+
+      <section className="grid items-center gap-12 py-16 sm:py-24 lg:grid-cols-[1.35fr_1fr]">
+        <div>
+        <h1 className="display max-w-[16ch] text-3xl sm:text-hero">
+          Show any local business its <em className="hl italic">better website.</em>
+        </h1>
+        <p className="mt-6 max-w-[56ch] text-lg text-graphite">
+          Paste the address of a shop, café or practice. Glowup measures its design from the real CSS, sets a direction and redesigns it, in about a minute.
+        </p>
+        <div className="relative mt-10">
+          <UrlForm />
+        </div>
+        <div className="mt-4">
+          <Limits />
+        </div>
+        </div>
+        <div className="hidden lg:block">
+          <ProofCard />
+        </div>
       </section>
 
-      <section className="mt-16" aria-labelledby="saved">
-        <h2 id="saved" className="display text-2xl">
-          Saved glow-ups
+      <section aria-labelledby="method" className="border-t border-rule py-14">
+        <h2 id="method" className="display text-2xl">
+          The method
         </h2>
-        <Gallery />
+        <ol className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {METHOD.map((m) => (
+            <li key={m.n} className="border-t-[1.5px] border-ink pt-4">
+              <span className="display num text-xl">{m.n}</span>
+              <h3 className="mt-2 font-semibold">{m.t}</h3>
+              <p className="mt-1 text-graphite">{m.d}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="mb-20 grid items-center gap-6 rounded-frame border border-rule bg-sheet p-8 sm:grid-cols-[1fr_auto]">
+        <div>
+          <h2 className="display text-2xl">Real site or redesign?</h2>
+          <p className="mt-2 max-w-[60ch] text-graphite">Two homepages of the same business, side by side. One is real, one is a Glowup concept. Vote for the one that looks better.</p>
+        </div>
+        <Link href="/vote" className="rounded-control border-[1.5px] border-ink bg-ink px-6 py-3 text-center font-semibold text-sheet hover:bg-graphite">
+          Start voting
+        </Link>
       </section>
     </main>
   );

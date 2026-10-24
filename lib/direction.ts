@@ -1,4 +1,6 @@
+import { pickConcept } from "./concept";
 import { completeJson } from "./llm";
+import { redis } from "./store";
 import { AXES, DirectionSchema, type Audit, type Content, type Direction } from "./types";
 
 const SYSTEM = `You are the design director in a website audit. You follow one method: Audit, then target marks, then design tokens, then one source of design.
@@ -58,7 +60,7 @@ function groundCta(d: Direction, c: Content, siteUrl: string): Direction {
   return { ...d, copy: { ...d.copy, ctaHref: fallback, cta: phone ? "Call us" : d.copy.cta } };
 }
 
-export async function direction(audit: Audit, content: Content, viewportJpegBase64: string): Promise<Direction> {
+export async function direction(audit: Audit, content: Content, viewportJpegBase64: string, avoid?: string[]): Promise<Direction> {
   const axesSpec = AXES.map(
     (a) => `- ${a.id}: 0 = ${a.left}, 100 = ${a.right}${a.measured ? " (measured axis: basis starts with \"measured:\" and cites the measured hint numbers)" : " (basis starts with \"reading of copy:\" or \"screenshot:\")"}`,
   ).join("\n");
@@ -112,5 +114,9 @@ The axes array has all 7 axes in the order listed above.`;
   if (d.keep.logoUrl && d.keep.logoUrl !== content.logoUrl && !content.images.some((i) => i.src === d.keep.logoUrl)) {
     d.keep.logoUrl = content.logoUrl;
   }
+  // Rotate layout concepts across recent glow-ups so they look different from each other.
+  const recent = avoid ?? (await redis<string[]>(["LRANGE", "concepts", 0, 2]).catch(() => [] as string[]));
+  d.concept = pickConcept(d, recent).id;
+  if (!avoid) await redis(["LPUSH", "concepts", d.concept]).catch(() => 0);
   return groundCta(d, content, audit.finalUrl);
 }

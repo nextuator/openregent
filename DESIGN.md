@@ -5,7 +5,7 @@ This file styles **the Glowup app only**. Never apply it to generated shop pages
 ## Idea: the editor's markup
 
 Glowup is a design audit, so the UI borrows from an editor marking up a proof:
-- The app is a calm, cool-grey proof sheet.
+- The app is a calm, warm-paper proof sheet (editorial direction B, chosen 24 Oct).
 - **Highlighter yellow** marks measured facts: the evidence.
 - **Red pen** marks what should change: targets, gaps, failed checks.
 - The only thing that glows is the redesign.
@@ -30,13 +30,13 @@ The scale and axes are the same as in the talk:
 
 | Token | Hex | Use |
 |---|---|---|
-| paper | `#EEF0F2` | page background (cool grey) |
+| paper | `#F3F1EC` | page background (warm paper) |
 | sheet | `#FFFFFF` | panels, frames |
-| ink | `#000000` | text, icons, primary outlines |
-| graphite | `#4A4F57` | secondary text (7.2:1 on paper) |
-| rule | `#C8CCD2` | 1px borders and dividers |
-| highlight | `#FFE04A` | measured values, the primary button fill (ink text on it), the redesign frame outline |
-| redline | `#D0213B` | target diamonds, gap segments, failed checks, "change" text marks (5.3:1 on white) |
+| ink | `#141414` | text, icons, primary button fill |
+| graphite | `#55524C` | secondary text (6.9:1 on paper) |
+| rule | `#D9D4CA` | 1px borders and dividers |
+| highlight | `#FFE04A` | measured values, the highlighted headline phrase, the redesign frame outline |
+| redline | `#C8102E` | target diamonds, gap segments, failed checks, "change" text marks (5.2:1 on paper) |
 
 Banned colours:
 - Purple or violet gradients (the event's own look).
@@ -45,10 +45,10 @@ Banned colours:
 
 ## Type
 
-- **One family: Archivo** (Google Fonts, variable `wdth` 62–125 and `wght` 100–900), loaded with `next/font/google` and the `wdth` axis.
-- **Display:** `font-stretch: 118%`, weight 800, `letter-spacing: -0.02em`, line-height 1.0.
-- **UI and body:** `font-stretch: 100%`, weight 400/600, line-height 1.5.
-- **Measurements:** `font-variant-numeric: tabular-nums`, set in the same family. No monospace.
+- **Display: Fraunces** (variable, opsz 144, SOFT 50, weight 600, letter-spacing -0.02em, line-height 0.98), with one italic highlighted phrase in the home headline.
+- **UI and body: Inter**, weight 400/600, line-height 1.5.
+- Both loaded with `next/font/google`.
+- **Measurements:** `font-variant-numeric: tabular-nums`. No monospace.
 - **Scale:** 14, 17 (body), 21, 27, 34, 54, 84 (home headline only).
 - **Projector rule:** never go below 14 px, and body text is 17 px.
 
@@ -101,7 +101,7 @@ Banned colours:
 - **Radius:** controls (inputs, buttons, tabs) use `--radius-control` (6 px). Preview frames use `--radius-frame` (10 px). Tables and data rows are square.
 - **Shadow:** only the redesign frame uses `--shadow-lift`. Everything else is separated by 1 px rule borders or the paper and sheet contrast.
 - **Buttons:**
-  - Primary: highlight fill, ink text, 1.5 px ink border.
+  - Primary: ink fill, sheet text, 1.5 px ink border.
   - Secondary: sheet fill, ink border.
   - Labels name the action: "Glow it up", "Show mobile", "Show desktop", "Download post", "Download slide". No arrows or emoji.
 - **Tabs:** text plus a 3 px ink underline on the active tab.

@@ -20,7 +20,7 @@ export type CompleteOpts = {
 export class LlmUnavailableError extends Error {
   code = "llm_unavailable";
   constructor() {
-    super("Live glow-ups are off on this deployment. Pick a saved one below.");
+    super("Live glow-ups are off on this deployment. You can still vote on existing glow-ups.");
   }
 }
 
@@ -68,7 +68,7 @@ function translate(e: unknown): never {
     const msg = String((e.error as { error?: { message?: string } })?.error?.message ?? e.message);
     if (/credit balance|billing|spend limit|usage limit|insufficient/i.test(msg)) {
       void notify("anthropic_billing", `Anthropic refused for billing: ${msg.slice(0, 160)}. Top up or raise the workspace limit.`, "high");
-      throw new LlmError("billing", "Live glow-ups are paused right now. Pick a saved glow-up below.");
+      throw new LlmError("billing", "Live glow-ups are paused right now. You can still vote on existing glow-ups.");
     }
     if (e instanceof Anthropic.RateLimitError) {
       void notify("anthropic_rate_limit", "Anthropic rate limit hit (429).", "high");
@@ -76,7 +76,7 @@ function translate(e: unknown): never {
     }
     if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
       void notify("anthropic_auth", `Anthropic key rejected (${e.status}).`, "high");
-      throw new LlmError("auth", "Live glow-ups are off right now. Pick a saved glow-up below.");
+      throw new LlmError("auth", "Live glow-ups are off right now. You can still vote on existing glow-ups.");
     }
     void notify("anthropic_error", `Anthropic error ${e.status ?? ""}: ${msg.slice(0, 160)}`);
     throw new LlmError("upstream", "The design model didn't answer. Try again in a moment.");
@@ -208,5 +208,5 @@ export function llmErrorResponse(e: unknown): Response {
   if (e instanceof LlmError) return Response.json({ error: { code: e.code, message: e.message } }, { status: e.code === "rate_limit" ? 429 : 502 });
   console.error("[llm] unexpected", e instanceof Error ? e.message : e);
   void notify("server_error", `LLM route failed: ${e instanceof Error ? e.message.slice(0, 160) : "unknown"}`);
-  return Response.json({ error: { code: "server", message: "Something went wrong. Try again or pick a saved glow-up below." } }, { status: 500 });
+  return Response.json({ error: { code: "server", message: "Something went wrong. Try again, or vote on existing glow-ups." } }, { status: 500 });
 }

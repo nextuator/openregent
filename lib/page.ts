@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { colorsNamed } from "culori";
 import { splitParts } from "./assemble";
+import { pickConcept } from "./concept";
 import { complete, completeStream } from "./llm";
 import { nearestToken } from "./tokens";
 import type { Content, Direction, TokensResult } from "./types";
@@ -12,33 +13,6 @@ Your redesign must look clearly better than the original and unlike a generic te
 You use only the design tokens you are given, as CSS custom properties. You never write colour literals or font names.
 You use only the business's own text, images and facts. You never invent prices, reviews, testimonials, ratings, awards, founding years, staff names or numbers. If information is missing, you leave the section out.
 You output exactly two parts and nothing else: one <style>…</style> block, then the body markup from <header> to </footer>. No <html>, <head>, <script>, no markdown fences, no commentary.`;
-
-/* Layout concepts, so redesigns differ from each other. Picked from the target marks plus a brand hash. */
-const CONCEPTS = [
-  { id: "editorial", when: "crafted + airy", text: "Editorial magazine: oversized serif display headline across the hero, a lead photo with a caption-like line, an asymmetric 12-column grid, pull-quote styling for the about text, numbered sections." },
-  { id: "poster", when: "informal / enthusiastic", text: "Swiss poster: giant display type that bleeds to the edges, a bold colour block in var(--color-primary) behind the hero, the photo cropped hard into a tall panel, tight uppercase labels for sections." },
-  { id: "bento", when: "systematic + dense", text: "Bento board: the offer as a tidy grid of differently sized tiles (one big photo tile, small text tiles), crisp 1px rules, compact info strip with hours and phone at the top." },
-  { id: "fullbleed", when: "deep + airy", text: "Full-bleed photo story: a full-viewport hero photo with the headline on a solid var(--color-bg) panel overlapping its bottom edge, alternating photo/text bands, lifted cards for the offer." },
-  { id: "menuboard", when: "food / shop with a list of products", text: "Menu board: the offer as an elegant two-column list with leader lines (dotted borders) between item and detail, a framed hero photo with a thick var(--color-primary) border, a warm stamp-like badge with the brand name." },
-  { id: "split", when: "rational + formal", text: "Split screen: hero split 50/50 into a solid var(--color-surface) text column and a photo column, a sticky slim header, a horizontal timeline-like row for the visit details." },
-] as const;
-
-function pickConcept(d: Direction): (typeof CONCEPTS)[number] {
-  const a = (id: string) => d.axes.find((x) => x.id === id)?.target ?? 50;
-  const scores: Record<string, number> = {
-    editorial: a("systematic_crafted") + a("dense_airy"),
-    poster: a("formal_informal") + (100 - a("enthusiastic_rational")),
-    bento: 200 - a("systematic_crafted") - a("dense_airy"),
-    fullbleed: a("flat_deep") + a("dense_airy"),
-    menuboard: /bäck|bakery|café|cafe|kaffee|coffee|restaurant|bar|pizza|confis|food|metzg|menu|speise/i.test(d.brand.offer + d.brand.name) ? 150 : 60,
-    split: a("enthusiastic_rational") + (100 - a("formal_informal")),
-  };
-  // Brand hash nudges ties so two similar shops still get different concepts.
-  let h = 0;
-  for (const ch of d.brand.name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const ranked = [...CONCEPTS].sort((x, y) => scores[y.id] - scores[x.id]);
-  return ranked[h % 2];
-}
 
 function axis(d: Direction, id: string) {
   return d.axes.find((a) => a.id === id)!;
@@ -127,7 +101,7 @@ function scanValue(prop: string, value: string, where: Violation["where"], out: 
     const lw = w.toLowerCase();
     if (NAMED.has(lw) && !/^(transparent|currentcolor|inherit)$/.test(lw)) out.push({ where, prop, literal: w });
   }
-  if (prop === "font-family" && !/^\s*var\(--font-(display|body)\)\s*(!important)?\s*$/i.test(value)) out.push({ where, prop, literal: value.trim() });
+  if (prop === "font-family" && !/^\s*(var\(--font-(display|body)\)|inherit|initial|unset)\s*(!important)?\s*$/i.test(value)) out.push({ where, prop, literal: value.trim() });
   if (prop === "font" && !/var\(--font-(display|body)\)/i.test(value)) out.push({ where, prop, literal: value.trim() });
 }
 

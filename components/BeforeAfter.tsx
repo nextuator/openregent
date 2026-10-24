@@ -31,14 +31,14 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
         <button
           onClick={() => setMode("desktop")}
           aria-pressed={mode === "desktop"}
-          className={`rounded-control border-[1.5px] border-ink px-4 py-1.5 ${mode === "desktop" ? "bg-highlight font-semibold" : "bg-sheet"}`}
+          className={`rounded-control border-[1.5px] border-ink px-4 py-1.5 ${mode === "desktop" ? "bg-ink font-semibold text-sheet" : "bg-sheet"}`}
         >
           Show desktop
         </button>
         <button
           onClick={() => setMode("mobile")}
           aria-pressed={mode === "mobile"}
-          className={`rounded-control border-[1.5px] border-ink px-4 py-1.5 ${mode === "mobile" ? "bg-highlight font-semibold" : "bg-sheet"}`}
+          className={`rounded-control border-[1.5px] border-ink px-4 py-1.5 ${mode === "mobile" ? "bg-ink font-semibold text-sheet" : "bg-sheet"}`}
         >
           Show mobile
         </button>

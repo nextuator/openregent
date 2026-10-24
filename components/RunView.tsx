@@ -39,7 +39,7 @@ export const STEP_LABELS = [
   "Applying the tokens to a post and a slide",
 ];
 
-const GENERIC = "Something went wrong. Try again or pick a saved glow-up below.";
+const GENERIC = "Something went wrong. Try again, or vote on existing glow-ups.";
 
 function demoHeaders(): Record<string, string> {
   try {
@@ -138,7 +138,7 @@ export function RunView() {
       });
       if (!res.ok || !res.body) {
         const j = await res.json().catch(() => null);
-        throw new StepError(j?.error?.message ?? "Couldn't open that site. Check the address or pick a saved glow-up below.");
+        throw new StepError(j?.error?.message ?? "Couldn't open that site. Check the address, or vote on existing glow-ups.");
       }
       let analyzeError = "";
       let runId = "";
@@ -208,7 +208,7 @@ export function RunView() {
     } catch (e) {
       failActive();
       setStatus("");
-      setError(e instanceof StepError ? e.message : "Lost the connection. Try again or pick a saved glow-up below.");
+      setError(e instanceof StepError ? e.message : "Lost the connection. Try again, or vote on existing glow-ups.");
     }
   }, []);
 
@@ -222,7 +222,7 @@ export function RunView() {
           setRun({ ...saved, viewport: saved.viewport ?? `/runs/${slug}/before.jpg`, full: saved.full ?? `/runs/${slug}/before-full.jpg` });
           setSteps(STEP_LABELS.map(() => "done"));
         })
-        .catch(() => setError("That saved glow-up doesn't exist. Pick another one on the home page."));
+        .catch(() => setError("That glow-up doesn't exist."));
       return;
     }
     if (!url) return;
@@ -275,8 +275,8 @@ export function RunView() {
         <div role="alert" className="mt-6 rounded-control border-[1.5px] border-redline bg-sheet p-4">
           <p className="font-semibold text-redline">{error}</p>
           <span className="mt-1 flex flex-wrap gap-4">
-            <Link href="/#saved" className="underline underline-offset-4">
-              See saved glow-ups
+            <Link href="/" className="underline underline-offset-4">
+              Try another site
             </Link>
             <Link href="/vote" className="underline underline-offset-4">
               Vote on glow-ups

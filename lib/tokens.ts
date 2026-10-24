@@ -1,4 +1,5 @@
 import { clampChroma, converter, differenceCiede2000, formatHex, parse, wcagContrast } from "culori";
+import { conceptFonts, pickConcept } from "./concept";
 import { completeJson } from "./llm";
 import { COLOR_TOKENS, TokenSetSchema, type Audit, type ContrastCheck, type Direction, type TokenSet, type TokensResult } from "./types";
 
@@ -167,8 +168,11 @@ Return exactly:
     if (!hit) notes.push(`Font "${name}" is not allowed, replaced with ${fallback}.`);
     return hit ?? fallback;
   };
-  t.font.display = pickFont(t.font.display, "Fraunces");
-  t.font.body = pickFont(t.font.body, "Figtree");
+  // The layout concept sets the type pairing, so different shops get different typography.
+  const cf = conceptFonts(dir);
+  t.font.display = pickFont(cf.display, "Fraunces");
+  t.font.body = pickFont(cf.body, "Figtree");
+  notes.push(`Layout concept "${pickConcept(dir).id}" sets the type pairing: ${t.font.display} with ${t.font.body}.`);
 
   // Keep the brand hue.
   const keepHue = toOklch(dir.keep.primaryHex)?.h;

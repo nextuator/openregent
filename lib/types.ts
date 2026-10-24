@@ -129,6 +129,8 @@ export const DirectionSchema = z.object({
     slideTitle: words(6),
     slideSubtitle: words(14),
   }),
+  /** Layout concept id, set in code after the LLM call (not by the model). */
+  concept: z.string().optional(),
 });
 export type Direction = z.infer<typeof DirectionSchema>;
 

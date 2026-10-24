@@ -40,7 +40,7 @@ export function UrlForm({ initial = "" }: { initial?: string }) {
       />
       <button
         type="submit"
-        className="h-14 rounded-control border-[1.5px] border-ink bg-highlight px-7 text-lg font-semibold text-ink hover:brightness-95"
+        className="h-14 rounded-control border-[1.5px] border-ink bg-ink px-7 text-lg font-semibold text-sheet hover:bg-graphite"
       >
         Glow it up
       </button>
