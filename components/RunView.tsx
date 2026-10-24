@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import type { AnalyzeEvent, Audit, CaptureMeta, Content } from "@/lib/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { assembleDocument, splitParts } from "@/lib/assemble";
+import type { PageEvent, PageReport } from "@/lib/page";
+import type { AnalyzeEvent, Audit, CaptureMeta, Content, Direction, TokensResult } from "@/lib/types";
 import { AuditView } from "./AuditView";
+import { BeforeAfter } from "./BeforeAfter";
+import { OneSource } from "./OneSource";
 import { Stepper, type StepState } from "./Stepper";
+import { TargetMarks } from "./TargetMarks";
+import { TokensView } from "./TokensView";
 
 export type Run = {
   url: string;
@@ -14,6 +20,10 @@ export type Run = {
   full?: string;
   audit?: Audit;
   content?: Content;
+  direction?: Direction;
+  tokens?: TokensResult;
+  html?: string;
+  report?: PageReport;
 };
 
 const TABS = ["Before and after", "Target marks", "Audit", "Tokens", "One source"] as const;
@@ -29,12 +39,38 @@ export const STEP_LABELS = [
   "Applying the tokens to a post and a slide",
 ];
 
+const GENERIC = "Something went wrong. Try again or pick a saved glow-up below.";
+
 function demoHeaders(): Record<string, string> {
   try {
     const k = localStorage.getItem("glowup-demo-key");
     return k ? { "x-demo-key": k } : {};
   } catch {
     return {};
+  }
+}
+
+const cacheKey = (url: string) => `glowup-run:${url.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+
+function saveCache(run: Run) {
+  try {
+    localStorage.setItem(cacheKey(run.url), JSON.stringify(run));
+  } catch {
+    try {
+      // Too big for localStorage: drop the full-page screenshot and try again.
+      localStorage.setItem(cacheKey(run.url), JSON.stringify({ ...run, full: run.viewport }));
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function loadCache(url: string): Run | null {
+  try {
+    const raw = localStorage.getItem(cacheKey(url));
+    return raw ? (JSON.parse(raw) as Run) : null;
+  } catch {
+    return null;
   }
 }
 
@@ -55,6 +91,15 @@ async function readNdjson<T>(res: Response, onEvent: (e: T) => void) {
   }
 }
 
+class StepError extends Error {}
+
+async function postJson<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", ...demoHeaders() }, body: JSON.stringify(body) });
+  const j = await res.json().catch(() => null);
+  if (!res.ok) throw new StepError(j?.error?.message ?? GENERIC);
+  return j as T;
+}
+
 export function RunView() {
   const params = useSearchParams();
   const url = params.get("url") ?? "";
@@ -63,60 +108,131 @@ export function RunView() {
   const [steps, setSteps] = useState<StepState[]>(STEP_LABELS.map(() => "pending"));
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("Before and after");
+  const [streamingHtml, setStreamingHtml] = useState<string>("");
+  const [status, setStatus] = useState("");
+  const [fromCache, setFromCache] = useState(false);
   const started = useRef(false);
 
   const setStep = (i: number, s: StepState) => setSteps((prev) => prev.map((v, j) => (j === i ? s : v)));
+  const failActive = () => setSteps((prev) => prev.map((s) => (s === "active" ? "error" : s)));
+
+  const start = useCallback(async (target: string) => {
+    setError("");
+    setFromCache(false);
+    setStreamingHtml("");
+    setSteps(STEP_LABELS.map(() => "pending"));
+    let r: Run = { url: target };
+    setRun(r);
+    const update = (patch: Partial<Run>) => {
+      r = { ...r, ...patch };
+      setRun(r);
+    };
+
+    try {
+      // 1–2: capture + audit
+      setStep(0, "active");
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...demoHeaders() },
+        body: JSON.stringify({ url: target }),
+      });
+      if (!res.ok || !res.body) {
+        const j = await res.json().catch(() => null);
+        throw new StepError(j?.error?.message ?? "Couldn't open that site. Check the address or pick a saved glow-up below.");
+      }
+      let analyzeError = "";
+      await readNdjson<AnalyzeEvent>(res, (e) => {
+        if (e.type === "captured") {
+          update({ meta: e.meta, viewport: e.viewport, full: e.full });
+          setStep(0, "done");
+          setStep(1, "active");
+        } else if (e.type === "audit") {
+          update({ audit: e.audit, content: e.content });
+          setStep(1, "done");
+        } else if (e.type === "error") analyzeError = e.message;
+      });
+      if (analyzeError || !r.audit || !r.content || !r.viewport) throw new StepError(analyzeError || GENERIC);
+
+      // 3–4: direction
+      setStep(2, "active");
+      const direction = await postJson<Direction>("/api/direction", { audit: r.audit, content: r.content, viewport: r.viewport });
+      update({ direction });
+      setStep(2, "done");
+      setStep(3, "done");
+
+      // 5: tokens
+      setStep(4, "active");
+      const tokens = await postJson<TokensResult>("/api/tokens", { direction, audit: r.audit });
+      update({ tokens });
+      setStep(4, "done");
+
+      // 6: homepage (streamed)
+      setStep(5, "active");
+      const lang = r.content.lang?.split("-")[0] || "en";
+      const doc = (css: string, body: string) =>
+        assembleDocument({ lang, brand: direction.brand.name, tokensCss: tokens.css, fontsHref: tokens.fontsHref, css, body });
+      const pres = await fetch("/api/page", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...demoHeaders() },
+        body: JSON.stringify({ tokens, direction, content: r.content, siteUrl: r.meta?.finalUrl ?? target }),
+      });
+      if (!pres.ok || !pres.body) {
+        const j = await pres.json().catch(() => null);
+        throw new StepError(j?.error?.message ?? GENERIC);
+      }
+      let raw = "";
+      let last = 0;
+      let pageError = "";
+      await readNdjson<PageEvent>(pres, (e) => {
+        if (e.type === "delta") {
+          raw += e.text;
+          const now = Date.now();
+          if (now - last > 800) {
+            last = now;
+            const p = splitParts(raw);
+            setStreamingHtml(doc(p.css, p.body));
+          }
+        } else if (e.type === "status") setStatus(e.message);
+        else if (e.type === "final") {
+          update({ html: doc(e.css, e.body), report: e.report });
+          setStreamingHtml("");
+          setStatus("");
+        } else if (e.type === "error") pageError = e.message;
+      });
+      if (pageError || !r.html) throw new StepError(pageError || GENERIC);
+      setStep(5, "done");
+      setStep(6, "done");
+      saveCache(r);
+    } catch (e) {
+      failActive();
+      setStatus("");
+      setError(e instanceof StepError ? e.message : "Lost the connection. Try again or pick a saved glow-up below.");
+    }
+  }, []);
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-
     if (slug) {
-      fetch(`/runs/${slug}/run.json`)
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
+      fetch(`/runs/${encodeURIComponent(slug)}/run.json`)
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((saved: Run) => {
-          setRun(saved);
+          setRun({ ...saved, viewport: saved.viewport ?? `/runs/${slug}/before.jpg`, full: saved.full ?? `/runs/${slug}/before-full.jpg` });
           setSteps(STEP_LABELS.map(() => "done"));
         })
         .catch(() => setError("That saved glow-up doesn't exist. Pick another one on the home page."));
       return;
     }
     if (!url) return;
-
-    (async () => {
-      setStep(0, "active");
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...demoHeaders() },
-        body: JSON.stringify({ url }),
-      });
-      if (!res.ok || !res.body) {
-        const j = await res.json().catch(() => null);
-        setStep(0, "error");
-        setError(j?.error?.message ?? "Couldn't open that site. Check the address or pick a saved glow-up below.");
-        return;
-      }
-      let failed = false;
-      await readNdjson<AnalyzeEvent>(res, (e) => {
-        if (e.type === "captured") {
-          setRun((r) => ({ ...r, meta: e.meta, viewport: e.viewport, full: e.full }));
-          setStep(0, "done");
-          setStep(1, "active");
-        } else if (e.type === "audit") {
-          setRun((r) => ({ ...r, audit: e.audit, content: e.content }));
-          setStep(1, "done");
-        } else if (e.type === "error") {
-          failed = true;
-          setSteps((prev) => prev.map((s) => (s === "active" ? "error" : s)));
-          setError(e.message);
-        }
-      });
-      if (failed) return;
-    })().catch(() => {
-      setSteps((prev) => prev.map((s) => (s === "active" ? "error" : s)));
-      setError("Lost the connection while measuring. Try again or pick a saved glow-up.");
-    });
-  }, [url, slug]);
+    const cached = loadCache(url);
+    if (cached?.html) {
+      setRun(cached);
+      setSteps(STEP_LABELS.map(() => "done"));
+      setFromCache(true);
+      return;
+    }
+    void start(url);
+  }, [url, slug, start]);
 
   const host = (() => {
     try {
@@ -126,20 +242,32 @@ export function RunView() {
     }
   })();
 
-  const facts = run.audit
-    ? `${run.audit.colors.literals} colour literals, ${run.audit.colors.distinct} distinct, ${run.audit.fonts.families.length} font families, ${run.audit.radii.length} radii`
-    : undefined;
+  const facts: Record<number, string | undefined> = {
+    1: run.audit
+      ? `${run.audit.colors.literals} colour literals, ${run.audit.colors.distinct} distinct, ${run.audit.fonts.families.length} font families, ${run.audit.radii.length} radii`
+      : undefined,
+    4: run.tokens ? `${run.audit?.colors.distinct ?? "?"} colours → 9 tokens` : undefined,
+  };
 
   return (
     <main className="mx-auto max-w-[1280px] px-4 py-8 sm:px-8">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
-        <h1 className="display text-2xl sm:text-3xl break-all">{host || "No website given"}</h1>
+        <h1 className="display break-all text-2xl sm:text-3xl">{host || "No website given"}</h1>
         <Link href="/" className="text-graphite underline underline-offset-4 hover:text-ink">
           Glow up another site
         </Link>
       </div>
 
-      <Stepper labels={STEP_LABELS} states={steps} facts={{ 1: facts }} />
+      <Stepper labels={STEP_LABELS} states={steps} facts={facts} />
+      {status && <p className="mt-2 text-sm text-graphite">{status}</p>}
+      {fromCache && (
+        <p className="mt-2 text-sm text-graphite">
+          Showing your earlier glow-up of this site.{" "}
+          <button onClick={() => void start(url)} className="underline underline-offset-4 hover:text-ink">
+            Run it again
+          </button>
+        </p>
+      )}
 
       {error && (
         <div role="alert" className="mt-6 rounded-control border-[1.5px] border-redline bg-sheet p-4">
@@ -165,11 +293,12 @@ export function RunView() {
       </div>
 
       <div className="mt-8" role="tabpanel">
-        {tab === "Before and after" && <BeforeAfter run={run} />}
+        {tab === "Before and after" && <BeforeAfter run={run} streamingHtml={streamingHtml} />}
+        {tab === "Target marks" && (run.direction ? <TargetMarks direction={run.direction} /> : <Waiting what="the target marks" />)}
         {tab === "Audit" && (run.audit && run.content ? <AuditView audit={run.audit} content={run.content} /> : <Waiting what="the audit" />)}
-        {tab === "Target marks" && <Waiting what="the target marks" />}
-        {tab === "Tokens" && <Waiting what="the tokens" />}
-        {tab === "One source" && <Waiting what="the post and slide" />}
+        {tab === "Tokens" &&
+          (run.tokens ? <TokensView result={run.tokens} rawCount={run.audit?.colors.distinct ?? 0} /> : <Waiting what="the tokens" />)}
+        {tab === "One source" && (run.tokens && run.direction && run.content ? <OneSource run={run} /> : <Waiting what="the post and slide" />)}
       </div>
     </main>
   );
@@ -177,28 +306,4 @@ export function RunView() {
 
 function Waiting({ what }: { what: string }) {
   return <p className="text-graphite">Waiting for {what}.</p>;
-}
-
-function BeforeAfter({ run }: { run: Run }) {
-  return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <figure className="order-2 md:order-1">
-        <figcaption className="mb-2 font-semibold">Before</figcaption>
-        <div className="h-[70vh] overflow-y-auto rounded-frame border border-rule bg-sheet">
-          {run.full ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={run.full} alt={`Full-page screenshot of the original ${run.meta?.finalUrl ?? "site"}`} className="block w-full" />
-          ) : (
-            <p className="p-6 text-graphite">The screenshot of the original site appears here.</p>
-          )}
-        </div>
-      </figure>
-      <figure className="order-1 md:order-2">
-        <figcaption className="mb-2 font-semibold">After</figcaption>
-        <div className="flex h-[70vh] items-center justify-center rounded-frame border border-rule bg-sheet p-6 text-graphite">
-          The redesign appears here once the tokens are built.
-        </div>
-      </figure>
-    </div>
-  );
 }

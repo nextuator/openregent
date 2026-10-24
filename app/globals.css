@@ -56,3 +56,8 @@
   color: var(--shop-color-text);
   font-family: var(--shop-font-body);
 }
+
+/* The glow: drawn once around the finished redesign (700 ms). */
+.glow-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: glow-draw 700ms ease-out forwards; }
+@keyframes glow-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .glow-draw { animation: none; stroke-dashoffset: 0; } }

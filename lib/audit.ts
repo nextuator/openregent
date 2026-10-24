@@ -274,7 +274,7 @@ function extractContent($: cheerio.CheerioAPI, base: string, markdown: string): 
       hours,
     },
     social,
-    markdown,
+    markdown: markdown.slice(0, 20000),
   };
 }
 
