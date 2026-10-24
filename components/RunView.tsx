@@ -188,6 +188,7 @@ export function RunView() {
       let raw = "";
       let last = 0;
       let pageError = "";
+      let revising = false;
       await readNdjson<PageEvent>(pres, (e) => {
         if (e.type === "delta") {
           raw += e.text;
@@ -195,10 +196,16 @@ export function RunView() {
           if (now - last > 800) {
             last = now;
             const p = splitParts(raw);
-            setStreamingHtml(doc(p.css, p.body));
+            // While the revision streams in, keep showing the first version until the new one has real content,
+            // so the preview never flashes an empty (often dark) page.
+            if (p.body.length > (revising ? 4000 : 800)) {
+              revising = false;
+              setStreamingHtml(doc(p.css, p.body));
+            }
           }
         } else if (e.type === "restart") {
           raw = "";
+          revising = true;
         } else if (e.type === "status") {
           const m = e.message;
           setStatus(/^Writing/.test(m) ? tr("st.brief") : /^Designing/.test(m) ? tr("st.first") : /^Critic/.test(m) ? tr("st.critic") : /^Revising/.test(m) ? tr("st.revise") : m);
