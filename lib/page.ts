@@ -1,7 +1,8 @@
 import * as cheerio from "cheerio";
 import { colorsNamed, wcagContrast } from "culori";
 import { splitParts } from "./assemble";
-import { pickConcept } from "./concept";
+import { pickConcept, statsSummary, type ConceptStats } from "./concept";
+import { DESIGN_GUIDE } from "./design-guide";
 import { complete, completeStream } from "./llm";
 import { nearestToken } from "./tokens";
 import type { Content, Direction, TokensResult } from "./types";
@@ -18,7 +19,7 @@ function axis(d: Direction, id: string) {
   return d.axes.find((a) => a.id === id)!;
 }
 
-export function buildPrompt(t: TokensResult, d: Direction, c: Content, siteUrl: string, violations?: string[]): string {
+export function buildPrompt(t: TokensResult, d: Direction, c: Content, siteUrl: string, violations?: string[], brief?: string): string {
   const dense = axis(d, "dense_airy"), deep = axis(d, "flat_deep"), crafted = axis(d, "systematic_crafted");
   const varNames = t.css.split("\n").map((l) => l.split(":")[0].trim()).join(", ");
   const address = c.contact.address.join(", ");
@@ -61,7 +62,9 @@ ${c.markdown.slice(0, 8000)}
 
 ## Concept
 ${pickConcept(d).text}
-Commit to this concept. Make the hero memorable: the headline can go up to calc(var(--text-3xl) * 2) on desktop with tight line-height, and the best real photo should be large.
+${brief ? `\n## Art-direction brief (follow it closely)\n${brief}\n` : ""}
+${DESIGN_GUIDE}
+Commit to this concept. One tasteful CSS-only entrance animation for the hero is welcome (keyframes, under 900 ms, wrapped in @media (prefers-reduced-motion: no-preference)). Make the hero memorable: the headline can go up to calc(var(--text-3xl) * 2) on desktop with tight line-height, and the best real photo should be large.
 Vary section layouts (do not stack identical centred blocks). Use the primary colour with intent (one or two strong moments), the accent sparingly.
 Avoid: emoji, icon fonts, stock-looking gradients, fake buttons that go nowhere, lorem ipsum, centred-everything layouts, generic "Welcome to our website" phrasing.
 
@@ -264,36 +267,148 @@ export function sanitizeBody(body: string, allowedImages: Set<string>): { body: 
 
 export type PageEvent =
   | { type: "delta"; text: string }
+  | { type: "restart" }
   | { type: "status"; message: string }
   | { type: "final"; css: string; body: string; report: PageReport }
   | { type: "error"; code: string; message: string };
 
-export type PageReport = { firstPass: string[]; afterRetry: string[]; autoFixed: string[]; removed: string[]; retried: boolean };
+export type PageReport = {
+  firstPass: string[];
+  afterRetry: string[];
+  autoFixed: string[];
+  removed: string[];
+  retried: boolean;
+  brief?: string;
+  slop?: string[];
+  critique?: string;
+};
 
-export async function* page(t: TokensResult, d: Direction, c: Content, siteUrl: string): AsyncIterable<PageEvent> {
+/* ---------- AI-look lint (deterministic) ---------- */
+
+const GENERIC_COPY = /\b(welcome to|willkommen auf unserer|discover|experience the|elevate|unleash|crafted with love|look no further|entdecken sie|erleben sie|tauchen sie ein|bienvenue sur)\b/i;
+const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
+
+export function slopLint(css: string, body: string): string[] {
+  const out: string[] = [];
+  const count = (re: RegExp, s: string) => (s.match(re) ?? []).length;
+  const eyebrows = count(/text-transform\s*:\s*uppercase[^}]*letter-spacing|letter-spacing[^}]*text-transform\s*:\s*uppercase/gi, css);
+  if (eyebrows > 3) out.push(`${eyebrows} uppercase letter-spaced label styles: the classic template eyebrow. Use at most one.`);
+  const centred = count(/text-align\s*:\s*center/gi, css);
+  if (centred > 4) out.push(`text-align: center used ${centred} times: centred-everything reads as a template. Align most text left.`);
+  if (/repeat\(\s*3\s*,\s*(minmax\(0,\s*)?1fr\)?\s*\)/i.test(css) && count(/box-shadow/gi, css) >= 1) out.push("Three equal columns of shadowed cards: the most common AI layout. Use an asymmetric or list-based layout instead.");
+  const grads = count(/(linear|radial|conic)-gradient\(/gi, css);
+  if (grads > 1) out.push(`${grads} gradients: decorative gradients read as AI. Use solid colour blocks.`);
+  const text = cheerio.load(body, null, false).text();
+  if (GENERIC_COPY.test(text)) out.push(`Generic marketing phrase in the copy ("${text.match(GENERIC_COPY)![0]}"). Use the business's own words.`);
+  if (EMOJI.test(text)) out.push("Emoji in the page. Remove them.");
+  if (count(/border-radius\s*:\s*(999|9999|50)/gi, css) > 4) out.push("Many pill shapes: pill buttons and badges everywhere look templated. Keep one pill style at most.");
+  if (!/clamp\(/.test(css)) out.push("No clamp() on the headline: the hero type is probably timid or overflows on mobile. Make the headline big and fluid.");
+  if (!/<img/i.test(body)) out.push("No photo used. Use the business's best real photo prominently.");
+  const sections = count(/<section/gi, body);
+  if (sections >= 4 && count(/grid-template-columns/gi, css) <= 1) out.push("Every section seems to share one layout. Give each section its own composition.");
+  return out;
+}
+
+/* ---------- art direction + critic ---------- */
+
+const BRIEF_SYSTEM = `You are a creative director known for bold, award-winning small-business websites. You write short, specific art-direction briefs that a designer can execute in HTML and CSS. You never suggest invented facts.`;
+
+function briefPrompt(t: TokensResult, d: Direction, c: Content, learned = ""): string {
+  const concept = pickConcept(d);
+  const headings = c.markdown.split("\n").filter((l) => /^#{1,3}\s/.test(l)).slice(0, 12).join("\n");
+  return `Business: ${d.brand.name}. ${d.brand.offer}. Audience: ${d.brand.audience}. Voice: ${d.brand.voice}.
+Concept to build on: ${concept.text}
+Palette mode: ${concept.mode}. Fonts: ${t.tokens.font.display} (display) and ${t.tokens.font.body} (body).
+Target marks: ${d.axes.map((a) => `${a.id} → ${a.target}`).join(", ")}.
+Real images (alt text): ${c.images.slice(0, 8).map((i, n) => `#${n + 1} ${i.alt || "no alt"}`).join("; ") || "none"}.
+Page headings on the current site:
+${headings || "(none)"}
+${learned ? `\nWhat blind voters preferred so far (learn from it): ${learned}\n` : ""}
+
+${DESIGN_GUIDE}
+
+Write the brief in at most 200 words, as these labelled lines:
+Signature idea: the one memorable move that makes a jury say "wow" (specific to this business, buildable in CSS, no scripts).
+Hero: exact composition (what is huge, where the photo goes, what overlaps what).
+Sections: the order, each with its own distinct layout.
+Type: sizes, weights, case and one expressive detail.
+Images: crops, frames, treatments (CSS filters, masks, rotations), which image goes where.
+Detail: one unexpected, tasteful detail.
+Avoid: three things this page must not do.
+
+Copy rule: do not write any new sentences, slogans or greetings. The only new text allowed is the given heroHeadline, heroSub and cta; everything else is quoted or shortened from the page text.`;
+}
+
+const CRITIC_SYSTEM = `You are a demanding design critic on an awards jury. You judge homepage code (HTML and CSS) for visual impact, originality and craft, and you spot anything that looks AI-generated or templated. You are concrete and brief.`;
+
+function criticPrompt(brief: string, css: string, body: string, slop: string[], violations: string[]): string {
+  return `The art-direction brief:
+${brief}
+
+Automatic findings (must all be fixed):
+${[...slop, ...violations].map((s) => `- ${s}`).join("\n") || "- none"}
+
+${DESIGN_GUIDE}
+
+The page (CSS then HTML, may be truncated):
+<style>${css.slice(0, 14000)}</style>
+${body.slice(0, 14000)}
+
+Give at most 8 numbered, concrete fixes that would most raise the wow factor and remove any AI or template look while keeping the brief.
+Name selectors and values. Also flag any text-on-background with weak contrast, anything that could overflow on a 390 px screen, and any sentence that is not in the page text or the given copy (invented copy must be removed). Never propose new copy. No praise, no preamble.`;
+}
+
+export async function* page(t: TokensResult, d: Direction, c: Content, siteUrl: string, stats?: ConceptStats): AsyncIterable<PageEvent> {
+  const allowed = new Set([...c.images.map((i) => i.src), ...(d.keep.logoUrl ? [d.keep.logoUrl] : [])]);
+
+  // 1. Art direction
+  yield { type: "status", message: "Writing the art-direction brief." };
+  const brief = (await complete({ system: BRIEF_SYSTEM, prompt: briefPrompt(t, d, c, stats ? statsSummary(stats) : ""), tier: "smart", maxTokens: 2500, effort: "low" })).trim();
+
+  // 2. First design, streamed
+  yield { type: "status", message: "Designing the first version." };
   let raw = "";
-  for await (const chunk of completeStream({ system: SYSTEM, prompt: buildPrompt(t, d, c, siteUrl), tier: "smart", maxTokens: 16000 })) {
+  for await (const chunk of completeStream({ system: SYSTEM, prompt: buildPrompt(t, d, c, siteUrl, undefined, brief), tier: "smart", maxTokens: 16000 })) {
     raw += chunk;
     yield { type: "delta", text: chunk };
   }
   let { css, body } = splitParts(raw);
   if (!css && !body) throw new Error("The design model returned no page");
-  const allowed = new Set([...c.images.map((i) => i.src), ...(d.keep.logoUrl ? [d.keep.logoUrl] : [])]);
 
+  // 3. Critic: deterministic lint + token rules + a critic model
   const first = describe(findViolations(css, body, t));
-  let after = first;
-  let retried = false;
-  if (first.length) {
-    retried = true;
-    yield { type: "status", message: `Found ${first.length} token violations. Asking for one corrected version.` };
-    const again = await complete({ system: SYSTEM, prompt: buildPrompt(t, d, c, siteUrl, first), tier: "smart", maxTokens: 16000 });
-    const parts = splitParts(again);
-    if (parts.css && parts.body) {
-      css = parts.css;
-      body = parts.body;
-    }
-    after = describe(findViolations(css, body, t));
+  const slop = slopLint(css, body);
+  yield { type: "status", message: `Critic review (${first.length} token issues, ${slop.length} template tells found by code).` };
+  const critique = (await complete({ system: CRITIC_SYSTEM, prompt: criticPrompt(brief, css, body, slop, first), tier: "smart", maxTokens: 2500, effort: "low" })).trim();
+
+  // 4. Revision, streamed
+  yield { type: "status", message: "Revising with the critic's notes." };
+  yield { type: "restart" };
+  let raw2 = "";
+  const revisePrompt = `${buildPrompt(t, d, c, siteUrl, first, brief)}
+
+## Your previous version
+<style>${css}</style>
+${body}
+
+## Critic notes (apply all of them)
+${critique}
+${slop.map((s) => `- ${s}`).join("\n")}
+
+Return the complete improved page: <style>…</style> then <header>…</footer>.`;
+  // Low effort: the thinking happened in the brief, the first version and the critique. Keeps the route under 300 s.
+  for await (const chunk of completeStream({ system: SYSTEM, prompt: revisePrompt, tier: "smart", maxTokens: 16000, effort: "low" })) {
+    raw2 += chunk;
+    yield { type: "delta", text: chunk };
   }
+  const parts = splitParts(raw2);
+  if (parts.css && parts.body) {
+    css = parts.css;
+    body = parts.body;
+  }
+
+  // 5. Enforce tokens in code
+  const after = describe(findViolations(css, body, t));
   let autoFixed: string[] = [];
   if (after.length) {
     const f = autofix(css, body, t);
@@ -302,5 +417,10 @@ export async function* page(t: TokensResult, d: Direction, c: Content, siteUrl: 
     autoFixed = f.fixed;
   }
   const s = sanitizeBody(body, allowed);
-  yield { type: "final", css, body: s.body, report: { firstPass: first, afterRetry: retried ? after : [], autoFixed, removed: s.removed, retried } };
+  yield {
+    type: "final",
+    css,
+    body: s.body,
+    report: { firstPass: first, afterRetry: after, autoFixed, removed: s.removed, retried: true, brief, slop, critique },
+  };
 }

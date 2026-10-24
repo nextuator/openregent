@@ -18,7 +18,8 @@ const slugify = (url: string) =>
 async function main() {
   loadEnv();
   const reuse = process.argv.includes("--reuse");
-  const urls = process.argv.slice(2).filter((a) => a !== "--reuse");
+  const forced = (process.argv.find((a) => a.startsWith("--concepts="))?.slice(11) ?? "").split(",").filter(Boolean);
+  const urls = process.argv.slice(2).filter((a) => a !== "--reuse" && !a.startsWith("--concepts="));
   const used: string[] = [];
   if (!urls.length) throw new Error("Usage: npm run prerun -- <url> [<url> …]");
   const root = path.join(process.cwd(), "public/runs");
@@ -35,7 +36,7 @@ async function main() {
       let rest;
       if (reuse && existsSync(path.join(dir, "run.json"))) {
         const saved = JSON.parse(readFileSync(path.join(dir, "run.json"), "utf8"));
-        rest = await regenerate(saved, used.slice(-3), log);
+        rest = await regenerate(saved, used.slice(-3), log, forced[urls.indexOf(url)]);
       } else {
         const r = await runAll(url, log);
         mkdirSync(dir, { recursive: true });
@@ -51,7 +52,7 @@ async function main() {
       writeFileSync(path.join(dir, "run.json"), JSON.stringify({ ...rest, viewport: `/runs/${slug}/before.jpg`, full: `/runs/${slug}/before-full.jpg` }));
       const entry = { slug, url: r.meta.finalUrl, name: r.direction.brand.name };
       const i = index.findIndex((e) => e.slug === slug);
-      if (i >= 0) index[i] = entry;
+      if (i >= 0) index[i] = { ...index[i], ...entry };
       else index.push(entry);
       writeFileSync(indexFile, JSON.stringify(index, null, 2) + "\n");
       console.log(`  saved. Auto-fixed: ${r.report.autoFixed.join("; ") || "none"}`);

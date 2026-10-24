@@ -9,7 +9,7 @@ export const maxDuration = 300;
    the vote page itself discloses that one side is a concept redesign by Glowup. */
 
 type Saved = { slug: string; url: string; name: string; sample?: boolean };
-type Pair = { id: string; host: string; brand: string; original: string; redesign: string };
+type Pair = { id: string; host: string; brand: string; original: string; redesign: string; concept?: string };
 
 function stripBanner(html: string): string {
   return html
@@ -31,7 +31,7 @@ async function load(id: string): Promise<Pair | null> {
     if (!/^[a-z0-9-]+$/.test(slug)) return null;
     try {
       const r = JSON.parse(await readFile(path.join(process.cwd(), "public/runs", slug, "run.json"), "utf8"));
-      return { id, host: new URL(r.meta.finalUrl).hostname, brand: r.direction.brand.name, original: `/runs/${slug}/before-full.jpg`, redesign: stripBanner(r.html) };
+      return { id, host: new URL(r.meta.finalUrl).hostname, brand: r.direction.brand.name, original: `/runs/${slug}/before-full.jpg`, redesign: stripBanner(r.html), concept: r.direction.concept };
     } catch {
       return null;
     }
@@ -39,8 +39,8 @@ async function load(id: string): Promise<Pair | null> {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null;
   const [run, cap] = await Promise.all([redis<string | null>(["GET", `run:${id}`]), redis<string | null>(["GET", `cap:${id}`])]);
   if (!run || !cap) return null;
-  const r = JSON.parse(run) as { host: string; brand: string; html: string };
-  return { id, host: r.host, brand: r.brand, original: ((c: { viewport: string; full?: string }) => c.full ?? c.viewport)(JSON.parse(cap)), redesign: stripBanner(r.html) };
+  const r = JSON.parse(run) as { host: string; brand: string; html: string; concept?: string };
+  return { id, host: r.host, brand: r.brand, concept: r.concept, original: ((c: { viewport: string; full?: string }) => c.full ?? c.viewport)(JSON.parse(cap)), redesign: stripBanner(r.html) };
 }
 
 async function totals() {
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
   for (let tries = 0; tries < 5 && ids.length; tries++) {
     const i = Math.floor(Math.random() * ids.length);
     const pair = await load(ids[i]);
-    if (pair) return Response.json({ pair, redesignFirst: Math.random() < 0.5, remaining: ids.length - 1, totals: await totals() }, { headers: { "Cache-Control": "no-store" } });
+    if (pair) return Response.json({ pair: { ...pair, concept: undefined }, redesignFirst: Math.random() < 0.5, remaining: ids.length - 1, totals: await totals() }, { headers: { "Cache-Control": "no-store" } });
     ids.splice(i, 1);
   }
   return Response.json({ pair: null, totals: await totals() }, { headers: { "Cache-Control": "no-store" } });
@@ -63,8 +63,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { id?: string; pick?: string } | null;
-  if (!body?.id || (body.pick !== "original" && body.pick !== "redesign") || !(await load(body.id))) {
+  const pair = body?.id ? await load(body.id) : null;
+  if (!body?.id || (body.pick !== "original" && body.pick !== "redesign") || !pair) {
     return Response.json({ error: { code: "bad_request", message: "Unknown pair" } }, { status: 400 });
+  }
+  // Training signal for the concept bandit: did this art direction beat the real site?
+  if (pair.concept) {
+    await redis(["HINCRBY", "bandit", `${pair.concept}:n`, 1]);
+    if (body.pick === "redesign") await redis(["HINCRBY", "bandit", `${pair.concept}:w`, 1]);
   }
   await redis(["HINCRBY", `votes:${body.id}`, body.pick, 1]);
   await redis(["HINCRBY", "votes:all", body.pick, 1]);

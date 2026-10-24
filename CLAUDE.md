@@ -43,9 +43,10 @@ The method comes from a talk at the event, and we reproduce it faithfully:
 - Every API route uses `export const runtime = "nodejs"; export const maxDuration = 300;`.
 - Deployment target is Vercel Hobby. Functions may run up to 300 s, and request and response bodies must stay under ~4.5 MB, so keep payloads small: JPEG screenshots, capped height.
 - Libraries (only these, unless blocked): `@anthropic-ai/sdk`, `zod`, `cheerio`, `culori`, `sharp`, and `html-to-image` (Phase 4 only).
-- There is no database:
+- Storage:
   - Live runs live in client state, plus a `localStorage` cache keyed by URL (wrap it in try/catch).
   - Pre-run demo runs are static files in `public/runs/`.
+  - Upstash Redis (REST via fetch, `lib/store.ts`, in-memory fallback locally) holds: per-IP daily limit (3), per-site limit (3), finished glow-ups for the blind vote, vote tallies and the concept bandit stats.
 
 ## Config
 
@@ -219,7 +220,7 @@ The LLM (tier "fast") picks:
 }
 ```
 
-- **FONT_ALLOWLIST:** Fraunces, Young Serif, Libre Caslon Text, DM Serif Display, Instrument Serif, Archivo, Manrope, Work Sans, Figtree, Karla, Rubik, Space Grotesk, Nunito Sans, Bricolage Grotesque.
+- **FONT_ALLOWLIST:** see `FONT_ALLOWLIST` in `lib/tokens.ts` (the original 14 plus about 20 characterful Google fonts, each verified with its weights). The layout concept (`lib/concept.ts`) sets the type pairing and palette mode.
 - **Contrast fixes in code (culori, OKLCH; keep the hue, move lightness):**
   - `text`/`bg` ≥ 7:1 if reachable, otherwise ≥ 4.5:1.
   - `textMuted`/`bg` ≥ 4.5:1.
@@ -230,7 +231,9 @@ The LLM (tier "fast") picks:
   - `--{prefix}radius-control|card`, `--{prefix}space-section`, `--{prefix}shadow-card`.
 - **`googleFontsHref(tokens)`** builds the CSS2 link.
 
-## Homepage (`lib/page.ts`), LLM tier "smart"
+## Homepage (`lib/page.ts`), LLM tier "smart" (Opus 5.5)
+
+Pipeline: concept (bandit-picked) → art-direction brief → first version (streamed) → deterministic slop lint + token checks + critic model → revision (streamed) → token enforcement in code. Evidence-based rules live in `docs/DESIGN-GUIDE.md` / `lib/design-guide.ts`. Blind votes train a Thompson-sampling bandit over concepts.
 
 - **Input:**
   - Tokens CSS (the variable names only matter).

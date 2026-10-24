@@ -1,6 +1,6 @@
-import { pickConcept } from "./concept";
+import { parseStats, pickConcept, pickConceptLearned } from "./concept";
 import { completeJson } from "./llm";
-import { redis } from "./store";
+import { hgetallToObject, redis } from "./store";
 import { AXES, DirectionSchema, type Audit, type Content, type Direction } from "./types";
 
 const SYSTEM = `You are the design director in a website audit. You follow one method: Audit, then target marks, then design tokens, then one source of design.
@@ -116,7 +116,9 @@ The axes array has all 7 axes in the order listed above.`;
   }
   // Rotate layout concepts across recent glow-ups so they look different from each other.
   const recent = avoid ?? (await redis<string[]>(["LRANGE", "concepts", 0, 2]).catch(() => [] as string[]));
-  d.concept = pickConcept(d, recent).id;
+  // Learn from the blind vote: concepts that win more get picked more (Thompson sampling).
+  const stats = parseStats(hgetallToObject(await redis<string[]>(["HGETALL", "bandit"]).catch(() => [] as string[])));
+  d.concept = (avoid ? pickConcept(d, recent) : pickConceptLearned(d, recent, stats)).id;
   if (!avoid) await redis(["LPUSH", "concepts", d.concept]).catch(() => 0);
   return groundCta(d, content, audit.finalUrl);
 }

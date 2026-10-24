@@ -194,6 +194,8 @@ export function RunView() {
             const p = splitParts(raw);
             setStreamingHtml(doc(p.css, p.body));
           }
+        } else if (e.type === "restart") {
+          raw = "";
         } else if (e.type === "status") setStatus(e.message);
         else if (e.type === "final") {
           update({ html: doc(e.css, e.body), report: e.report });

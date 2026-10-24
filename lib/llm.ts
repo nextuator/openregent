@@ -15,6 +15,7 @@ export type CompleteOpts = {
   image?: { base64: string; mediaType: "image/jpeg" | "image/png" };
   tier: Tier;
   maxTokens: number;
+  effort?: "low" | "medium" | "high";
 };
 
 export class LlmUnavailableError extends Error {
@@ -58,7 +59,7 @@ function params(o: CompleteOpts): Anthropic.MessageCreateParamsNonStreaming {
     max_tokens: o.maxTokens,
     system: o.system,
     messages: [{ role: "user", content }],
-    output_config: { effort: EFFORT[o.tier] },
+    output_config: { effort: o.effort ?? EFFORT[o.tier] },
   };
 }
 

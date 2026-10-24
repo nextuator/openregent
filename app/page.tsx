@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Learning } from "@/components/Learning";
 import { Limits } from "@/components/Limits";
 import { ProofCard } from "@/components/ProofCard";
 import { Samples } from "@/components/Samples";
@@ -58,6 +59,17 @@ export default function Home() {
       </section>
 
       <Samples />
+
+      <section aria-labelledby="learns" className="border-t border-rule py-14">
+        <h2 id="learns" className="display text-2xl">
+          It learns from your votes
+        </h2>
+        <p className="mt-2 max-w-[64ch] text-graphite">
+          Every redesign follows one of seven art directions. Each blind vote is an A/B test: did this direction beat the real site? A Thompson-sampling bandit
+          picks directions that win more often, and the art director sees the results, so new glow-ups get better with every vote.
+        </p>
+        <Learning />
+      </section>
 
       <section className="mb-20 grid items-center gap-6 rounded-frame border border-rule bg-sheet p-8 sm:grid-cols-[1fr_auto]">
         <div>

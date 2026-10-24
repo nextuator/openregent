@@ -48,9 +48,10 @@ export async function regenerate(
   saved: Pick<FullRun, "url" | "meta" | "audit" | "content" | "direction">,
   avoid: string[],
   log: (s: string) => void = console.log,
+  force?: string,
 ): Promise<Omit<FullRun, "viewportJpeg" | "fullJpeg">> {
   const { pickConcept } = await import("./concept");
-  const d: Direction = { ...saved.direction, concept: undefined };
+  const d: Direction = { ...saved.direction, concept: force };
   d.concept = pickConcept(d, avoid).id;
   log(`concept: ${d.concept}`);
   const t = await tokens(d, saved.audit);

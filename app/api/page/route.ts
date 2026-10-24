@@ -3,7 +3,8 @@ import { checkDemoKey, guardResponse, siteKey } from "@/lib/guard";
 import { LlmError, LlmUnavailableError, llmErrorResponse, provider } from "@/lib/llm";
 import { notify } from "@/lib/notify";
 import { page, type PageEvent } from "@/lib/page";
-import { redis } from "@/lib/store";
+import { parseStats } from "@/lib/concept";
+import { hgetallToObject, redis } from "@/lib/store";
 import type { Content, Direction, TokensResult } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -27,7 +28,8 @@ export async function POST(req: Request) {
     async start(controller) {
       const send = (e: PageEvent) => controller.enqueue(enc.encode(JSON.stringify(e) + "\n"));
       try {
-        for await (const ev of page(tokens, direction, content, siteUrl)) {
+        const stats = parseStats(hgetallToObject(await redis<string[]>(["HGETALL", "bandit"]).catch(() => [] as string[])));
+        for await (const ev of page(tokens, direction, content, siteUrl, stats)) {
           send(ev);
           if (ev.type === "final" && runId) await saveForVote(runId, direction, content, tokens, ev.css, ev.body);
         }
@@ -55,7 +57,7 @@ async function saveForVote(runId: string, d: Direction, c: Content, t: TokensRes
     if (!cap) return;
     const { host } = JSON.parse(cap) as { host: string };
     const html = assembleDocument({ lang: c.lang?.split("-")[0] || "en", brand: d.brand.name, tokensCss: t.css, fontsHref: t.fontsHref, css, body });
-    await redis(["SET", `run:${runId}`, JSON.stringify({ host, brand: d.brand.name, html, at: Date.now() }), "EX", 30 * 86400]);
+    await redis(["SET", `run:${runId}`, JSON.stringify({ host, brand: d.brand.name, html, concept: d.concept, at: Date.now() }), "EX", 30 * 86400]);
     await redis(["LPUSH", "runs", runId]);
     await redis(["INCR", siteKey(host)]);
   } catch (e) {

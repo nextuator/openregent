@@ -1,9 +1,31 @@
 import { clampChroma, converter, differenceCiede2000, formatHex, parse, wcagContrast } from "culori";
-import { conceptFonts, pickConcept } from "./concept";
+import { conceptFonts, MODE_RULES, pickConcept, type PaletteMode } from "./concept";
 import { completeJson } from "./llm";
 import { COLOR_TOKENS, TokenSetSchema, type Audit, type ContrastCheck, type Direction, type TokenSet, type TokensResult } from "./types";
 
-export const FONT_ALLOWLIST: Record<string, { generic: "serif" | "sans-serif"; weights: string | null }> = {
+export const FONT_ALLOWLIST: Record<string, { generic: "serif" | "sans-serif" | "monospace"; weights: string | null }> = {
+  // Characterful additions (verified against fonts.googleapis.com css2 with these weights).
+  "Bodoni Moda": { generic: "serif", weights: "400;600;700;800" },
+  Gloock: { generic: "serif", weights: "400" },
+  "Cormorant Garamond": { generic: "serif", weights: "400;600;700" },
+  Newsreader: { generic: "serif", weights: "400;600;700" },
+  Italiana: { generic: "serif", weights: "400" },
+  Syne: { generic: "sans-serif", weights: "400;600;700;800" },
+  Unbounded: { generic: "sans-serif", weights: "400;600;700;800" },
+  Anton: { generic: "sans-serif", weights: "400" },
+  "Bebas Neue": { generic: "sans-serif", weights: "400" },
+  "Archivo Black": { generic: "sans-serif", weights: "400" },
+  "Big Shoulders Display": { generic: "sans-serif", weights: "400;600;800" },
+  "Familjen Grotesk": { generic: "sans-serif", weights: "400;600;700" },
+  "Schibsted Grotesk": { generic: "sans-serif", weights: "400;600;700" },
+  "Hanken Grotesk": { generic: "sans-serif", weights: "400;600;700" },
+  Epilogue: { generic: "sans-serif", weights: "400;600;700;800" },
+  Sora: { generic: "sans-serif", weights: "400;600;700" },
+  "DM Sans": { generic: "sans-serif", weights: "400;600;700" },
+  "Instrument Sans": { generic: "sans-serif", weights: "400;600;700" },
+  Chivo: { generic: "sans-serif", weights: "400;600;700" },
+  Oswald: { generic: "sans-serif", weights: "400;600;700" },
+  "Space Mono": { generic: "monospace", weights: "400;700" },
   Fraunces: { generic: "serif", weights: "400;600;700" },
   "Young Serif": { generic: "serif", weights: "400" },
   "Libre Caslon Text": { generic: "serif", weights: "400;700" },
@@ -83,11 +105,44 @@ export function fixContrast(t: TokenSet): ContrastCheck[] {
   return checks;
 }
 
+/* ---------- palette modes (keep hue, set lightness) ---------- */
+
+function setL(hex: string, l: number, maxC?: number): string {
+  const c = toOklch(hex)!;
+  const chroma = maxC === undefined ? c.c : Math.min(c.c ?? 0, maxC);
+  return formatHex(clampChroma({ ...c, mode: "oklch", l, c: chroma }, "oklch"));
+}
+
+/** The art direction's palette mode is enforced in code, so "dark" really is dark and "crisp" is never cream. */
+export function enforceMode(t: TokenSet, mode: PaletteMode, notes: string[]) {
+  const c = t.color;
+  const L = (hex: string) => toOklch(hex)?.l ?? 0.5;
+  const C = (hex: string) => toOklch(hex)?.c ?? 0;
+  const before = JSON.stringify(c);
+  if (mode === "dark") {
+    if (L(c.bg) > 0.25) c.bg = setL(c.bg, 0.17, 0.03);
+    if (L(c.surface) > 0.32 || L(c.surface) < L(c.bg)) c.surface = setL(c.surface, 0.23, 0.035);
+    if (L(c.border) > 0.42 || L(c.border) < 0.25) c.border = setL(c.border, 0.34, 0.03);
+    if (L(c.text) < 0.85) c.text = setL(c.text, 0.95, 0.02);
+    if (L(c.textMuted) < 0.65) c.textMuted = setL(c.textMuted, 0.76, 0.03);
+  } else if (mode === "crisp" || mode === "brand") {
+    // No cream, no beige: neutrals lose most of their chroma.
+    if (L(c.bg) > 0.5) {
+      if (L(c.bg) < 0.97 || C(c.bg) > 0.012) c.bg = setL(c.bg, 0.99, 0.006);
+      if (C(c.surface) > 0.03 || L(c.surface) < 0.9) c.surface = setL(c.surface, 0.955, 0.02);
+      if (C(c.border) > 0.03) c.border = setL(c.border, 0.88, 0.02);
+      if (L(c.text) > 0.3) c.text = setL(c.text, 0.18, 0.02);
+    }
+    if (mode === "brand" && C(c.primary) < 0.12) c.primary = setL(c.primary, Math.min(0.6, L(c.primary)), 0.2);
+  }
+  if (JSON.stringify(c) !== before) notes.push(`Palette mode "${mode}" enforced on the neutrals (hue kept).`);
+}
+
 /* ---------- CSS output ---------- */
 
 function fontStack(name: string): string {
   const generic = FONT_ALLOWLIST[name]?.generic ?? "sans-serif";
-  return `"${name.replace(/"/g, "")}", ${generic === "serif" ? "Georgia, serif" : "system-ui, sans-serif"}`;
+  return `"${name.replace(/"/g, "")}", ${generic === "serif" ? "Georgia, serif" : generic === "monospace" ? "ui-monospace, monospace" : "system-ui, sans-serif"}`;
 }
 
 export function typeScale(t: TokenSet): Record<string, number> {
@@ -145,9 +200,12 @@ ${audit.colors.clusters.map((c) => `- ${c.hex} ×${c.count} (${c.samples.join(",
 Currently used: ${audit.fonts.families.map((f) => f.name).join(", ") || "none"}.
 Allowed for font.display and font.body (exact names): ${allowed.join(", ")}.
 
+## Palette mode (from the art direction)
+${MODE_RULES[pickConcept(dir).mode]}
+
 ## Rules
 - primary keeps the brand hue of ${dir.keep.primaryHex}. accent is one supporting colour.
-- warm_cool target drives the neutrals (bg, surface, border, textMuted): low = warm neutrals, high = cool neutrals.
+- warm_cool target drives the tint of the neutrals (bg, surface, border, textMuted): low = warm tint, high = cool tint. Never default to cream or beige unless the palette mode says warm paper.
 - dense_airy target drives space.section (dense ≈ 56-80, airy ≈ 120-160) and scale.base.
 - flat_deep target drives shadow ("none" when below 40) and radius.card.
 - systematic_crafted target drives the type pairing: crafted = an expressive serif display, systematic = a clean grotesk.
@@ -193,6 +251,7 @@ Return exactly:
   t.mapping = t.mapping.filter((m) => valid.has(m.to.trim()));
 
   for (const k of COLOR_TOKENS) t.color[k] = t.color[k].toLowerCase();
+  enforceMode(t, pickConcept(dir).mode, notes);
   const contrast = fixContrast(t);
   for (const c of contrast) if (c.adjusted) notes.push(`Adjusted lightness for ${c.pair} to reach ${c.min}:1 (now ${c.ratio}:1).`);
 
