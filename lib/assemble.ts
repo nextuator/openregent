@@ -58,3 +58,12 @@ ${opts.body}
 </body>
 </html>`;
 }
+
+/** Routes every external image in a generated page through our same-origin proxy (/api/img), so sites that send
+ *  Cross-Origin-Resource-Policy: same-origin (or block hotlinking) still show their own photos. Idempotent. */
+export function proxyImages(html: string): string {
+  const px = (u: string) => `/api/img?u=${encodeURIComponent(u.replace(/&amp;/g, "&"))}`;
+  return html
+    .replace(/(<img\b[^>]*?\bsrc=")(https?:\/\/[^"]+)(")/gi, (_m, a: string, u: string, b: string) => `${a}${px(u)}${b}`)
+    .replace(/url\((["']?)(https?:\/\/(?!fonts\.(?:googleapis|gstatic)\.com)[^"')]+)\1\)/gi, (_m, q: string, u: string) => `url(${q}${px(u)}${q})`);
+}

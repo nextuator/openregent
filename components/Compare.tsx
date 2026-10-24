@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
+import { proxyImages } from "@/lib/assemble";
 
 /** Before/after slider: the original screenshot underneath, the redesign on top, revealed up to a draggable handle. */
 export function Compare({ before, html, beforeLabel: bl, afterLabel: al }: { before: string; html: string; beforeLabel?: string; afterLabel?: string }) {
@@ -26,7 +27,7 @@ export function Compare({ before, html, beforeLabel: bl, afterLabel: al }: { bef
       {/* after, clipped to the right of the handle */}
       <div className="absolute inset-0" style={{ clipPath: `inset(0 0 0 ${pos}%)` }}>
         <div className="pointer-events-none absolute left-0 top-0" style={{ width: 1440, height: 900, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-          <iframe title={afterLabel} srcDoc={html} sandbox="" tabIndex={-1} className="h-full w-full border-0 bg-sheet" />
+          <iframe title={afterLabel} srcDoc={proxyImages(html)} sandbox="" tabIndex={-1} className="h-full w-full border-0 bg-sheet" />
         </div>
       </div>
       {/* labels */}

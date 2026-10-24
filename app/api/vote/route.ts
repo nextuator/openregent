@@ -1,5 +1,6 @@
 import { readFile } from "fs/promises";
 import path from "path";
+import { proxyImages } from "@/lib/assemble";
 import { hgetallToObject, redis } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -12,7 +13,7 @@ type Saved = { slug: string; url: string; name: string; sample?: boolean };
 type Pair = { id: string; host: string; brand: string; original: string; redesign: string; concept?: string };
 
 function stripBanner(html: string): string {
-  return html
+  return proxyImages(html)
     .replace(/<div class="glowup-concept-banner"[\s\S]*?<\/div>/, "")
     .replace("</head>", "<style>body{padding-top:0!important}html{scrollbar-width:none}::-webkit-scrollbar{display:none}a{pointer-events:none}</style></head>");
 }

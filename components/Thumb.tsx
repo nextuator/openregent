@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { proxyImages } from "@/lib/assemble";
 
 /** A 1440 px wide page, scaled down to fit its box and cropped to the first screen. Not interactive. */
 export function Thumb({ html, src, alt }: { html?: string; src?: string; alt: string }) {
@@ -16,7 +17,7 @@ export function Thumb({ html, src, alt }: { html?: string; src?: string; alt: st
     <div ref={ref} className="relative aspect-[1440/900] w-full overflow-hidden rounded-control border border-rule bg-sheet">
       {html ? (
         <div className="pointer-events-none absolute left-0 top-0" style={{ width: 1440, height: 900, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-          <iframe title={alt} srcDoc={html} sandbox="" tabIndex={-1} className="h-full w-full border-0" />
+          <iframe title={alt} srcDoc={proxyImages(html)} sandbox="" tabIndex={-1} className="h-full w-full border-0" />
         </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element

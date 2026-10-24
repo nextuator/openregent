@@ -5,6 +5,7 @@ import type { Run } from "./RunView";
 import { toPng } from "html-to-image";
 import { useT } from "@/lib/i18n";
 import { SlideDeck } from "./SlideDeck";
+import { proxyImages } from "@/lib/assemble";
 import { useShopFonts } from "./TokensView";
 
 /** Same-origin proxy so the PNG export can read the pixels. */
@@ -128,7 +129,7 @@ export function OneSource({ run }: { run: Run }) {
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         <Scaled w={1280} h={800} label="Homepage">
           {run.html ? (
-            <iframe title="Homepage thumbnail" srcDoc={run.html} sandbox="" className="h-full w-full border-0" tabIndex={-1} />
+            <iframe title="Homepage thumbnail" srcDoc={proxyImages(run.html)} sandbox="" className="h-full w-full border-0" tabIndex={-1} />
           ) : (
             <div className="h-full w-full bg-sheet" />
           )}

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Run } from "./RunView";
 import { Compare } from "./Compare";
+import { proxyImages } from "@/lib/assemble";
 import { useT } from "@/lib/i18n";
 
 function useWidth<T extends HTMLElement>() {
@@ -25,7 +26,7 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
   const [ref, width] = useWidth<HTMLDivElement>();
   const frameW = mode === "desktop" ? 1280 : 390;
   const scale = width ? Math.min(1, width / frameW) : 1;
-  const html = run.html ?? streamingHtml;
+  const html = proxyImages(run.html ?? streamingHtml);
   const done = !!run.html;
 
   return (
