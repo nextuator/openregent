@@ -17,6 +17,8 @@ export type Lang = (typeof LANGS)[number]["id"];
 type Dict = Record<string, string>;
 
 const en: Dict = {
+  "queue.wait": "You're in the queue: someone else's site is being opened right now. Not an error, it continues in a moment (attempt {n}).",
+  "queue.busy": "Lots of people are glowing up at the same time. This isn't an error, just a queue. Try again in a minute.",
   "marks.keep": "we keep the primary colour",
   "marks.logo": "and the logo",
   "marks.drag": "Drag the red diamonds to where you want the design, then regenerate the page with your target marks.",
@@ -138,6 +140,8 @@ const en: Dict = {
 };
 
 const de: Dict = {
+  "queue.wait": "Du bist in der Warteschlange: gerade ist jemand anderes dran. Kein Fehler, es geht gleich weiter (Versuch {n}).",
+  "queue.busy": "Gerade wollen viele gleichzeitig ein Glow-up. Das ist kein Fehler, nur eine Warteschlange. Versuch es in einer Minute nochmal.",
   "marks.keep": "wir behalten die Hauptfarbe",
   "marks.logo": "und das Logo",
   "marks.drag": "Schieb die roten Rauten dorthin, wo du das Design willst, und lass die Seite mit deinen Zielmarken neu gestalten.",
@@ -259,6 +263,8 @@ const de: Dict = {
 };
 
 const fr: Dict = {
+  "queue.wait": "Vous êtes dans la file d'attente : quelqu'un d'autre passe avant vous. Pas d'erreur, ça continue dans un instant (essai {n}).",
+  "queue.busy": "Beaucoup de monde lance un glow-up en même temps. Ce n'est pas une erreur, juste une file d'attente. Réessayez dans une minute.",
   "marks.keep": "nous gardons la couleur principale",
   "marks.logo": "et le logo",
   "marks.drag": "Glissez les losanges rouges où vous voulez le design, puis régénérez la page avec vos repères.",
@@ -380,6 +386,8 @@ const fr: Dict = {
 };
 
 const it: Dict = {
+  "queue.wait": "Sei in coda: ora tocca a qualcun altro. Nessun errore, si riparte tra poco (tentativo {n}).",
+  "queue.busy": "Molte persone stanno lanciando un glow-up insieme. Non è un errore, solo una coda. Riprova tra un minuto.",
   "marks.keep": "manteniamo il colore principale",
   "marks.logo": "e il logo",
   "marks.drag": "Trascina i rombi rossi dove vuoi il design e rigenera la pagina con i tuoi obiettivi.",
@@ -502,6 +510,8 @@ const it: Dict = {
 
 // Rumantsch Grischun. Short UI strings; long explanations fall back to German where noted by "de" in DICTS.
 const rm: Dict = {
+  "queue.wait": "Ti es en la colonna: ussa è insatgi auter vi da la retscha. Nagin sbagl, i va vinavant immediat (emprova {n}).",
+  "queue.busy": "Ussa vulan blers glow-ups il medem mument. Quai n’è nagin sbagl, mo ina colonna. Emprova anc ina giada en ina minuta.",
   "marks.keep": "nus mantegnin la colur principala",
   "marks.logo": "ed il logo",
   "marks.drag": "Stuschà ils rombs cotschens nua che ti vuls il design e lascha crear la pagina da nov.",
@@ -625,6 +635,8 @@ const rm: Dict = {
 
 // Baseldytsch: the default. Missing keys fall back to Swiss Hochdeutsch (de).
 const bs: Dict = {
+  "queue.wait": "Du bisch in dr Warteschlange: grad isch öpper anders dra. Kai Fähler, es goht glyy wyter (Versuech {n}).",
+  "queue.busy": "Grad wänn vyl Lüt glyychzytig e Glow-up. Das isch kai Fähler, nur e Warteschlange. Probier s in ere Minute nomol.",
   "marks.keep": "mir bhalte d Hauptfarb",
   "marks.logo": "und s Logo",
   "marks.drag": "Schieb di rote Rhombe, wo du s Design witt ha, und loss d Syte mit dyne Zielmarke nei gstalte.",

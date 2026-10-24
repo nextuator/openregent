@@ -113,6 +113,7 @@ export function RunView() {
   const tr = useT();
   const [streamingHtml, setStreamingHtml] = useState<string>("");
   const [status, setStatus] = useState("");
+  const [queued, setQueued] = useState(0);
   const [fromCache, setFromCache] = useState(false);
   const started = useRef(false);
 
@@ -205,7 +206,10 @@ export function RunView() {
       let analyzeError = "";
       let runId = "";
       await readNdjson<AnalyzeEvent>(res, (e) => {
-        if (e.type === "captured") {
+        if (e.type === "queued") {
+          setQueued(e.attempt);
+        } else if (e.type === "captured") {
+          setQueued(0);
           runId = e.runId;
           update({ meta: e.meta, viewport: e.viewport, full: e.full });
           setStep(0, "done");
@@ -213,7 +217,7 @@ export function RunView() {
         } else if (e.type === "audit") {
           update({ audit: e.audit, content: e.content });
           setStep(1, "done");
-        } else if (e.type === "error") analyzeError = e.message;
+        } else if (e.type === "error") analyzeError = e.code === "busy" ? tr("queue.busy") : e.message;
       });
       if (analyzeError || !r.audit || !r.content || !r.viewport) throw new StepError(analyzeError || GENERIC);
 
@@ -288,6 +292,7 @@ export function RunView() {
   })();
 
   const facts: Record<number, string | undefined> = {
+    0: queued ? tr("queue.wait", { n: queued }) : undefined,
     1: run.audit
       ? `${run.audit.colors.literals} colour literals, ${run.audit.colors.distinct} distinct, ${run.audit.fonts.families.length} font families, ${run.audit.radii.length} radii`
       : undefined,

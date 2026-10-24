@@ -12,8 +12,28 @@
     "sample": true
   },
   {
+    "slug": "baeckerei-bumann-ch",
+    "url": "https://www.baeckerei-bumann.ch/",
+    "name": "Bäckerei Bumann GmbH"
+  },
+  {
+    "slug": "confiserie-bachmann-ch",
+    "url": "https://www.confiserie-bachmann.ch/",
+    "name": "Confiserie Bachmann"
+  },
+  {
     "slug": "pension-basel-ch",
     "url": "https://www.unterkunft-basel.com/de/default.html",
     "name": "Business Apartment und Ferienwohnung Grenzach-Wyhlen"
+  },
+  {
+    "slug": "stadtkeller-basel-ch",
+    "url": "https://www.stadtkeller-basel.ch/",
+    "name": "Stadtkeller Basel"
+  },
+  {
+    "slug": "torstuebli-ch",
+    "url": "https://www.torstuebli.ch/",
+    "name": "Torstübli"
   }
 ]

@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         }
       };
       try {
-        const cap = await capture(url);
+        const cap = await capture(url, (attempt) => send({ type: "queued", attempt }));
         console.log(`[analyze] captured ${cap.finalUrl} in ${cap.ms} ms, credits ${cap.credits}`);
         const viewport = `data:image/jpeg;base64,${cap.viewportJpeg.toString("base64")}`;
         // Keep the original's first viewport for the blind vote (30 days).
@@ -67,7 +67,9 @@ export async function POST(req: Request) {
         console.log(`[analyze] audit in ${Date.now() - t0} ms`);
         send({ type: "audit", ...result });
       } catch (e) {
-        if (e instanceof CaptureError) {
+        if (e instanceof CaptureError && e.message === "busy") {
+          send({ type: "error", code: "busy", message: "busy" });
+        } else if (e instanceof CaptureError) {
           console.warn(`[analyze] capture failed: ${e.message} (${e.detail ?? ""})`);
           if (/credit|quota|limit|payment|unauthori|api key/i.test(`${e.message} ${e.detail}`)) {
             void notify("gaffa_error", `${e.message}: ${e.detail ?? ""}`, "high");

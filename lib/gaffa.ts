@@ -46,7 +46,7 @@ async function download(url: string): Promise<Buffer> {
 }
 
 /** Opens the page in a Gaffa cloud browser. Read-only: navigate, wait, scroll, capture. */
-export async function capture(rawUrl: string): Promise<Capture> {
+export async function capture(rawUrl: string, onQueue?: (attempt: number) => void): Promise<Capture> {
   const key = process.env.GAFFA_API_KEY;
   if (!key) throw new CaptureError("GAFFA_API_KEY is not set.");
   const url = normalizeUrl(rawUrl);
@@ -84,6 +84,8 @@ export async function capture(rawUrl: string): Promise<Capture> {
   json = (await res.json().catch(() => ({}))) as GaffaResponse;
   const reason = `${json.error?.message ?? ""} ${json.data?.error_reason ?? ""} ${json.error?.code ?? ""}`;
   if (/concurrent|active request|too many|rate/i.test(reason) || res.status === 429) {
+    if (attempt === 11) throw new CaptureError("busy", reason);
+    onQueue?.(attempt + 1);
     await new Promise((r) => setTimeout(r, 7000 + Math.random() * 3000));
     continue;
   }

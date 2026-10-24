@@ -75,6 +75,7 @@ export type Content = {
 export type AnalyzeEvent =
   | { type: "captured"; runId: string; meta: CaptureMeta; viewport: string; full: string }
   | { type: "audit"; audit: Audit; content: Content }
+  | { type: "queued"; attempt: number }
   | { type: "error"; code: string; message: string };
 
 /* ---------- Direction (LLM) ---------- */
