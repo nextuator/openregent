@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { APP_NAME, APP_URL } from "@/lib/config";
+import { LangProvider } from "@/lib/i18n";
 import "./globals.css";
 
 const sans = Inter({ variable: "--gl-sans", subsets: ["latin"] });
@@ -15,8 +16,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+    <html lang="de" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
+      <body className="min-h-full">
+        <LangProvider>{children}</LangProvider>
+      </body>
     </html>
   );
 }

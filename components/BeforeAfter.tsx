@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Run } from "./RunView";
+import { useT } from "@/lib/i18n";
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -19,6 +20,7 @@ const FRAME_H = "h-[72vh]";
 
 export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: string }) {
   const [mode, setMode] = useState<"desktop" | "mobile">("desktop");
+  const t = useT();
   const [ref, width] = useWidth<HTMLDivElement>();
   const frameW = mode === "desktop" ? 1280 : 390;
   const scale = width ? Math.min(1, width / frameW) : 1;
@@ -33,19 +35,19 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
           aria-pressed={mode === "desktop"}
           className={`rounded-control border-[1.5px] border-ink px-4 py-1.5 ${mode === "desktop" ? "bg-ink font-semibold text-sheet" : "bg-sheet"}`}
         >
-          Show desktop
+          {t("ba.desktop")}
         </button>
         <button
           onClick={() => setMode("mobile")}
           aria-pressed={mode === "mobile"}
           className={`rounded-control border-[1.5px] border-ink px-4 py-1.5 ${mode === "mobile" ? "bg-ink font-semibold text-sheet" : "bg-sheet"}`}
         >
-          Show mobile
+          {t("ba.mobile")}
         </button>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
         <figure className="order-2 min-w-0 md:order-1">
-          <figcaption className="mb-2 font-semibold">Before</figcaption>
+          <figcaption className="mb-2 font-semibold">{t("ba.before")}</figcaption>
           <div className={`${FRAME_H} overflow-y-auto rounded-frame border border-rule bg-sheet`}>
             {run.full ? (
               <div className={mode === "mobile" ? "mx-auto w-full max-w-[390px]" : ""}>
@@ -53,13 +55,13 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
                 <img src={run.full} alt={`Full-page screenshot of the original ${run.meta?.finalUrl ?? "site"}`} className="block w-full" />
               </div>
             ) : (
-              <p className="p-6 text-graphite">The screenshot of the original site appears here.</p>
+              <p className="p-6 text-graphite">{t("ba.shot")}</p>
             )}
           </div>
-          {mode === "mobile" && run.full && <p className="mt-2 text-sm text-graphite">The original was captured at desktop width.</p>}
+          {mode === "mobile" && run.full && <p className="mt-2 text-sm text-graphite">{t("ba.desktopnote")}</p>}
         </figure>
         <figure className="order-1 min-w-0 md:order-2">
-          <figcaption className="mb-2 font-semibold">After</figcaption>
+          <figcaption className="mb-2 font-semibold">{t("ba.after")}</figcaption>
           <div className="relative">
             <div
               ref={ref}
@@ -84,7 +86,7 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
                   />
                 </div>
               ) : (
-                <p className="flex h-full items-center justify-center p-6 text-graphite">The redesign appears here once the tokens are built.</p>
+                <p className="flex h-full items-center justify-center p-6 text-graphite">{t("ba.wait")}</p>
               )}
             </div>
             {done && <Glow />}

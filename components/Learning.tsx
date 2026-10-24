@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@/lib/i18n";
 
 type Row = { id: string; wins: number; n: number; rate: number | null };
 
@@ -17,6 +18,7 @@ const LABEL: Record<string, string> = {
 /** Landing section: the art directions and how often voters preferred them over the real site. */
 export function Learning() {
   const [rows, setRows] = useState<Row[] | null>(null);
+  const t = useT();
   useEffect(() => {
     fetch("/api/learning", { cache: "no-store" })
       .then((r) => r.json())
@@ -33,7 +35,7 @@ export function Learning() {
           <span className="relative h-2 flex-1 overflow-hidden rounded-full border border-rule bg-sheet" aria-hidden>
             <span className="absolute inset-y-0 left-0 bg-ink" style={{ width: `${Math.round((r.rate ?? 0) * 100)}%` }} />
           </span>
-          <span className="num w-28 shrink-0 text-right text-graphite">{r.n ? `${Math.round((r.rate ?? 0) * 100)}% of ${r.n}` : "no votes yet"}</span>
+          <span className="num w-28 shrink-0 text-right text-graphite">{r.n ? t("learns.of", { pct: Math.round((r.rate ?? 0) * 100), n: r.n }) : t("learns.none")}</span>
         </li>
       ))}
     </ul>

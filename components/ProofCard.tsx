@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { AXES, type Audit, type Direction, type TokensResult } from "@/lib/types";
 import { Mark } from "./marks";
+import { T } from "@/lib/i18n";
 
 /* Home hero illustration: a proof sheet with the real numbers from one saved glow-up (no brand shown, so the vote stays blind). */
 
@@ -24,10 +25,10 @@ export async function ProofCard() {
   const swatches = Object.values(tokens.tokens.color).slice(0, 7);
   return (
     <figure aria-label="Example audit" className="relative rotate-[1.2deg] rounded-frame border border-rule bg-sheet p-7 shadow-lift">
-      <p className="text-sm text-graphite">Audit of a Basel restaurant site</p>
+      <p className="text-sm text-graphite"><T k="proof.caption" /></p>
       <p className="mt-3 text-lg leading-relaxed">
-        <Mark>{audit.colors.literals}</Mark> colour literals, <Mark>{audit.colors.distinct}</Mark> distinct, <Mark>{audit.fonts.families.length}</Mark> font
-        families.
+        <Mark>{audit.colors.literals}</Mark> <T k="proof.literals" />, <Mark>{audit.colors.distinct}</Mark> <T k="proof.distinct" />, <Mark>{audit.fonts.families.length}</Mark>{" "}
+        <T k="proof.families" />.
       </p>
       <ul className="mt-6 space-y-5">
         {axes.map((a) => {
@@ -50,11 +51,11 @@ export async function ProofCard() {
         })}
       </ul>
       <div className="mt-7 flex items-center gap-2">
-        <span className="text-sm text-graphite">Becomes</span>
+        <span className="text-sm text-graphite"><T k="proof.becomes" /></span>
         {swatches.map((c, i) => (
           <span key={i} className="h-6 w-6 rounded-full border border-rule" style={{ background: c }} />
         ))}
-        <span className="text-sm text-graphite">9 tokens</span>
+        <span className="text-sm text-graphite"><T k="proof.tokens" /></span>
       </div>
     </figure>
   );

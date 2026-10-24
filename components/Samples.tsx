@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import Link from "next/link";
 import { Thumb } from "./Thumb";
+import { T } from "@/lib/i18n";
 
 /* Home: labelled before/after samples. Only entries marked "sample" in public/runs/index.json, which the blind vote excludes. */
 
@@ -24,25 +25,25 @@ export async function Samples() {
   return (
     <section aria-labelledby="samples" className="border-t border-rule py-14">
       <h2 id="samples" className="display text-2xl">
-        Sample glow-ups
+        <T k="samples.title" />
       </h2>
-      <p className="mt-2 max-w-[60ch] text-graphite">Real Basel businesses, measured and redesigned from their own content. These two are not in the vote.</p>
+      <p className="mt-2 max-w-[60ch] text-graphite"><T k="samples.sub" /></p>
       <ul className="mt-8 grid gap-10">
         {samples.map(({ e, html }) => (
           <li key={e.slug}>
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="text-lg font-semibold">{e.name}</h3>
               <Link href={`/glow?run=${e.slug}`} className="underline underline-offset-4 hover:text-ink">
-                See the audit, target marks and tokens
+                <T k="samples.link" />
               </Link>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <figure className="min-w-0">
-                <figcaption className="mb-2 text-sm text-graphite">Before</figcaption>
+                <figcaption className="mb-2 text-sm text-graphite"><T k="samples.before" /></figcaption>
                 <Thumb src={`/runs/${e.slug}/before.jpg`} alt={`Original homepage of ${e.name}`} />
               </figure>
               <figure className="min-w-0">
-                <figcaption className="mb-2 text-sm font-semibold">After</figcaption>
+                <figcaption className="mb-2 text-sm font-semibold"><T k="samples.after" /></figcaption>
                 <Thumb html={html} alt={`Concept redesign of ${e.name}`} />
               </figure>
             </div>

@@ -9,6 +9,8 @@ import type { AnalyzeEvent, Audit, CaptureMeta, Content, Direction, TokensResult
 import { AuditView } from "./AuditView";
 import { BeforeAfter } from "./BeforeAfter";
 import { OneSource } from "./OneSource";
+import { Pitch } from "./Pitch";
+import { LangSwitcher, useT } from "@/lib/i18n";
 import { Stepper, type StepState } from "./Stepper";
 import { TargetMarks } from "./TargetMarks";
 import { TokensView } from "./TokensView";
@@ -26,7 +28,7 @@ export type Run = {
   report?: PageReport;
 };
 
-const TABS = ["Before and after", "Target marks", "Audit", "Tokens", "One source"] as const;
+const TABS = ["ba", "pitch", "social", "marks", "audit", "tokens"] as const;
 type Tab = (typeof TABS)[number];
 
 export const STEP_LABELS = [
@@ -107,7 +109,8 @@ export function RunView() {
   const [run, setRun] = useState<Run>({ url });
   const [steps, setSteps] = useState<StepState[]>(STEP_LABELS.map(() => "pending"));
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<Tab>("Before and after");
+  const [tab, setTab] = useState<Tab>("ba");
+  const tr = useT();
   const [streamingHtml, setStreamingHtml] = useState<string>("");
   const [status, setStatus] = useState("");
   const [fromCache, setFromCache] = useState(false);
@@ -256,34 +259,37 @@ export function RunView() {
   return (
     <main className="mx-auto max-w-[1280px] px-4 py-8 sm:px-8">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
-        <h1 className="display break-all text-2xl sm:text-3xl">{host || "No website given"}</h1>
-        <Link href="/" className="text-graphite underline underline-offset-4 hover:text-ink">
-          Glow up another site
-        </Link>
+        <h1 className="display break-all text-2xl sm:text-3xl">{host || tr("run.none")}</h1>
+        <span className="flex items-center gap-4">
+          <LangSwitcher />
+          <Link href="/" className="text-graphite underline underline-offset-4 hover:text-ink">
+            {tr("run.another")}
+          </Link>
+        </span>
       </div>
 
-      <Stepper labels={STEP_LABELS} states={steps} facts={facts} />
+      <Stepper labels={STEP_LABELS.map((_, i) => tr(`s${i + 1}`))} states={steps} facts={facts} />
       {status && <p className="mt-2 text-sm text-graphite">{status}</p>}
       {fromCache && (
         <p className="mt-2 text-sm text-graphite">
-          Showing your earlier glow-up of this site.{" "}
+          {tr("run.cached")}{" "}
           <button onClick={() => void start(url)} className="underline underline-offset-4 hover:text-ink">
-            Run it again
+            {tr("run.again")}
           </button>
         </p>
       )}
 
       {error && (
         <section role="alert" className="mt-8 max-w-2xl rounded-frame border border-rule bg-sheet p-6 sm:p-8">
-          <h2 className="display text-xl">That didn&apos;t work</h2>
+          <h2 className="display text-xl">{tr("err.title")}</h2>
           <p className="mt-2 text-lg text-graphite">{error}</p>
-          <p className="mt-1 text-sm text-graphite">This attempt didn&apos;t count toward your daily glow-ups.</p>
+          <p className="mt-1 text-sm text-graphite">{tr("err.free")}</p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/" className="rounded-control border-[1.5px] border-ink bg-ink px-5 py-2.5 font-semibold text-sheet hover:bg-graphite">
-              Try another site
+              {tr("err.try")}
             </Link>
             <Link href="/vote" className="rounded-control border-[1.5px] border-ink bg-sheet px-5 py-2.5 font-semibold hover:bg-paper">
-              Vote on glow-ups
+              {tr("err.vote")}
             </Link>
           </div>
         </section>
@@ -300,18 +306,19 @@ export function RunView() {
             onClick={() => setTab(t)}
             className={`-mb-px border-b-[3px] pb-2 pt-1 text-base ${tab === t ? "border-ink font-semibold" : "border-transparent text-graphite hover:text-ink"}`}
           >
-            {t}
+            {tr(`t.${t}`)}
           </button>
         ))}
       </div>
 
       <div className="mt-8" role="tabpanel">
-        {tab === "Before and after" && <BeforeAfter run={run} streamingHtml={streamingHtml} />}
-        {tab === "Target marks" && (run.direction ? <TargetMarks direction={run.direction} /> : <Waiting what="the target marks" />)}
-        {tab === "Audit" && (run.audit && run.content ? <AuditView audit={run.audit} content={run.content} /> : <Waiting what="the audit" />)}
-        {tab === "Tokens" &&
-          (run.tokens ? <TokensView result={run.tokens} rawCount={run.audit?.colors.distinct ?? 0} /> : <Waiting what="the tokens" />)}
-        {tab === "One source" && (run.tokens && run.direction && run.content ? <OneSource run={run} /> : <Waiting what="the post and slide" />)}
+        {tab === "ba" && <BeforeAfter run={run} streamingHtml={streamingHtml} />}
+        {tab === "pitch" && (run.direction && run.audit && run.content ? <Pitch direction={run.direction} audit={run.audit} content={run.content} /> : <Waiting what={tr("t.pitch")} />)}
+        {tab === "marks" && (run.direction ? <TargetMarks direction={run.direction} /> : <Waiting what={tr("t.marks")} />)}
+        {tab === "audit" && (run.audit && run.content ? <AuditView audit={run.audit} content={run.content} /> : <Waiting what={tr("t.audit")} />)}
+        {tab === "tokens" &&
+          (run.tokens ? <TokensView result={run.tokens} rawCount={run.audit?.colors.distinct ?? 0} /> : <Waiting what={tr("t.tokens")} />)}
+        {tab === "social" && (run.tokens && run.direction && run.content ? <OneSource run={run} /> : <Waiting what={tr("t.social")} />)}
       </div>
       </>
       )}
@@ -320,5 +327,6 @@ export function RunView() {
 }
 
 function Waiting({ what }: { what: string }) {
-  return <p className="text-graphite">Waiting for {what}.</p>;
+  const tr = useT();
+  return <p className="text-graphite">{tr("wait", { x: what })}</p>;
 }

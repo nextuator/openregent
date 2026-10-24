@@ -32,7 +32,16 @@ export async function POST(req: Request) {
   const enc = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (e: AnalyzeEvent) => controller.enqueue(enc.encode(JSON.stringify(e) + "\n"));
+      let closed = false;
+      // The visitor may close the tab mid-run: never write to a closed stream.
+      const send = (e: AnalyzeEvent) => {
+        if (closed) return;
+        try {
+          controller.enqueue(enc.encode(JSON.stringify(e) + "\n"));
+        } catch {
+          closed = true;
+        }
+      };
       try {
         const cap = await capture(url);
         console.log(`[analyze] captured ${cap.finalUrl} in ${cap.ms} ms, credits ${cap.credits}`);
@@ -70,7 +79,14 @@ export async function POST(req: Request) {
           send({ type: "error", code: "server", message: "Something went wrong while measuring the site. Try again, or vote on existing glow-ups." });
         }
       } finally {
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+        }
       }
     },
   });

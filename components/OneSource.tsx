@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { Run } from "./RunView";
+import { toPng } from "html-to-image";
+import { useT } from "@/lib/i18n";
 import { useShopFonts } from "./TokensView";
+
+/** Same-origin proxy so the PNG export can read the pixels. */
+const px = (u: string) => `/api/img?u=${encodeURIComponent(u)}`;
 
 /** Shop tokens as --shop-* custom properties (same values as the homepage's --color-* / --font-*). */
 function shopVars(tokensCss: string): CSSProperties {
@@ -16,7 +21,7 @@ function shopVars(tokensCss: string): CSSProperties {
   return style as CSSProperties;
 }
 
-function Scaled({ w, h, children, label }: { w: number; h: number; children: ReactNode; label: string }) {
+function Scaled({ w, h, children, label, nodeRef }: { w: number; h: number; children: ReactNode; label: string; nodeRef?: React.RefObject<HTMLDivElement | null> }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.3);
   useEffect(() => {
@@ -29,7 +34,9 @@ function Scaled({ w, h, children, label }: { w: number; h: number; children: Rea
     <figure className="min-w-0">
       <figcaption className="mb-2 font-semibold">{label}</figcaption>
       <div ref={ref} className="relative w-full overflow-hidden rounded-frame border border-rule" style={{ aspectRatio: `${w} / ${h}` }}>
-        <div className="absolute left-0 top-0" style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: "top left" }}>{children}</div>
+        <div className="absolute left-0 top-0" style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: "top left" }}>
+          <div ref={nodeRef} style={{ width: w, height: h }}>{children}</div>
+        </div>
       </div>
     </figure>
   );
@@ -39,6 +46,29 @@ const v = (name: string) => `var(--shop-${name})`;
 
 export function OneSource({ run }: { run: Run }) {
   const t = run.tokens!, d = run.direction!, c = run.content!;
+  const tr = useT();
+  const postRef = useRef<HTMLDivElement>(null);
+  const slideRef = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState("");
+  const [copied, setCopied] = useState(false);
+  const host = (() => { try { return new URL(run.meta?.finalUrl ?? run.url).hostname.replace(/^www\./, ""); } catch { return ""; } })();
+  const tag = d.brand.name.replace(/[^\p{L}\p{N}]+/gu, "");
+  const caption = `${d.copy.postHeadline}\n\n${d.copy.postLine}\n\n${d.copy.cta}: ${host}\n\n#${tag} #Basel #BaselCity #Basilea #MadeInBasel`;
+  async function download(ref: React.RefObject<HTMLDivElement | null>, w: number, h: number, name: string) {
+    if (!ref.current) return;
+    setBusy(name);
+    try {
+      const url = await toPng(ref.current, { width: w, height: h, pixelRatio: 1, cacheBust: true });
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${tag || "glowup"}-${name}.png`;
+      a.click();
+    } catch (e) {
+      console.warn("PNG export failed", e);
+    } finally {
+      setBusy("");
+    }
+  }
   useShopFonts(t.fontsHref);
   const photos = c.images.filter((i) => i.src !== d.keep.logoUrl && i.src !== c.logoUrl);
   const hero = photos[0];
@@ -50,7 +80,7 @@ export function OneSource({ run }: { run: Run }) {
   const Brand = ({ size }: { size: number }) =>
     logo ? (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={logo} alt={d.brand.name} style={{ height: size, width: "auto", objectFit: "contain" }} />
+      <img src={px(logo)} alt={d.brand.name} style={{ height: size, width: "auto", objectFit: "contain" }} />
     ) : (
       <span style={{ fontFamily: v("font-display"), fontSize: size * 0.8, fontWeight: 700 }}>{d.brand.name}</span>
     );
@@ -58,6 +88,23 @@ export function OneSource({ run }: { run: Run }) {
   return (
     <div className="grid gap-8">
       <p className="max-w-[70ch] text-lg">The homepage, the post and the slide all read the same {t.css.split("\n").length} tokens. Change a token and all three change.</p>
+      <div className="grid gap-4 rounded-frame border border-rule bg-sheet p-5 md:grid-cols-[1fr_auto]">
+        <div>
+          <p className="text-sm text-graphite">{tr("social.caption")}</p>
+          <pre className="mt-2 whitespace-pre-wrap font-[inherit] text-base">{caption}</pre>
+        </div>
+        <div className="flex flex-wrap content-start gap-2 md:flex-col">
+          <button onClick={() => void navigator.clipboard.writeText(caption).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); })} className="rounded-control border-[1.5px] border-ink bg-sheet px-4 py-2 font-semibold hover:bg-paper">
+            {copied ? tr("pitch.copied") : tr("social.copy")}
+          </button>
+          <button onClick={() => void download(postRef, 1080, 1080, "post")} disabled={!!busy} className="rounded-control border-[1.5px] border-ink bg-ink px-4 py-2 font-semibold text-sheet hover:bg-graphite disabled:opacity-60">
+            {busy === "post" ? tr("social.busy") : tr("social.post")}
+          </button>
+          <button onClick={() => void download(slideRef, 1920, 1080, "slide")} disabled={!!busy} className="rounded-control border-[1.5px] border-ink bg-sheet px-4 py-2 font-semibold hover:bg-paper disabled:opacity-60">
+            {busy === "slide" ? tr("social.busy") : tr("social.slide")}
+          </button>
+        </div>
+      </div>
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         <Scaled w={1280} h={800} label="Homepage">
           {run.html ? (
@@ -66,11 +113,11 @@ export function OneSource({ run }: { run: Run }) {
             <div className="h-full w-full bg-sheet" />
           )}
         </Scaled>
-        <Scaled w={1080} h={1080} label="Post, 1080 × 1080">
+        <Scaled w={1080} h={1080} label="Instagram post, 1080 × 1080" nodeRef={postRef}>
           <div data-shop-scope style={{ ...vars, width: 1080, height: 1080, position: "relative", overflow: "hidden" }}>
             {hero && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={hero.src} alt={hero.alt} style={{ position: "absolute", inset: 0, width: "100%", height: "62%", objectFit: "cover" }} />
+              <img src={px(hero.src)} alt={hero.alt} style={{ position: "absolute", inset: 0, width: "100%", height: "62%", objectFit: "cover" }} />
             )}
             <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: hero ? "38%" : "100%", background: v("color-bg"), padding: "48px 64px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <div>
@@ -85,7 +132,7 @@ export function OneSource({ run }: { run: Run }) {
           </div>
         </Scaled>
       </div>
-      <Scaled w={1920} h={1080} label="Slide, 1920 × 1080">
+      <Scaled w={1920} h={1080} label="Slide, 1920 × 1080" nodeRef={slideRef}>
         <div data-shop-scope style={{ ...vars, width: 1920, height: 1080, display: "grid", gridTemplateColumns: second ? "1fr 1fr" : "1fr", background: v("color-bg") }}>
           <div style={{ padding: "120px 112px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
             <Brand size={72} />
@@ -101,7 +148,7 @@ export function OneSource({ run }: { run: Run }) {
           </div>
           {second && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={second.src} alt={second.alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={px(second.src)} alt={second.alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           )}
         </div>
       </Scaled>

@@ -2,17 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 
 export function UrlForm({ initial = "" }: { initial?: string }) {
   const router = useRouter();
   const [url, setUrl] = useState(initial);
   const [error, setError] = useState("");
+  const t = useT();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const v = url.trim();
     if (!v || !/^(https?:\/\/)?[^\s/]+\.[^\s]{2,}/i.test(v)) {
-      setError("Paste a website address, like baeckerei-example.ch.");
+      setError(t("form.error"));
       return;
     }
     router.push(`/glow?url=${encodeURIComponent(v)}`);
@@ -22,7 +24,7 @@ export function UrlForm({ initial = "" }: { initial?: string }) {
     <>
     <form onSubmit={submit} className="flex max-w-3xl flex-col gap-3 sm:flex-row" noValidate>
       <label htmlFor="url" className="sr-only">
-        Website address
+        {t("form.label")}
       </label>
       <input
         id="url"
@@ -42,7 +44,7 @@ export function UrlForm({ initial = "" }: { initial?: string }) {
         type="submit"
         className="h-14 rounded-control border-[1.5px] border-ink bg-ink px-7 text-lg font-semibold text-sheet hover:bg-graphite"
       >
-        Glow it up
+        {t("form.button")}
       </button>
     </form>
       {error && (

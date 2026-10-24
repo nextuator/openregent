@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mark } from "./marks";
+import { useT } from "@/lib/i18n";
 
 type Pair = { id: string; host: string; brand: string; original: string; redesign: string };
 type Totals = { original: number; redesign: number };
@@ -55,6 +56,7 @@ export function VoteView() {
   const [finished, setFinished] = useState(false);
   const [totals, setTotals] = useState<Totals | null>(null);
   const [busy, setBusy] = useState(false);
+  const tr = useT();
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/vote?seen=${encodeURIComponent(seen().join(","))}`, { cache: "no-store" });
@@ -87,7 +89,7 @@ export function VoteView() {
     }
   }
 
-  if (!next) return <p className="text-graphite">Loading a pair…</p>;
+  if (!next) return <p className="text-graphite">{tr("vp.loading")}</p>;
 
   if (finished) {
     const picked = ballots.filter((b) => b.picked === "redesign").length;
@@ -95,17 +97,17 @@ export function VoteView() {
     const pct = totals && all ? Math.round((totals.redesign / all) * 100) : null;
     return (
       <div>
-        <h2 className="display text-2xl">The reveal</h2>
+        <h2 className="display text-2xl">{tr("vp.reveal")}</h2>
         {ballots.length ? (
           <p className="mt-3 text-lg">
-            You picked the Glowup redesign in <Mark>{picked}</Mark> of {ballots.length} pairs.
+            {tr("vp.score", { k: picked, n: ballots.length })}
           </p>
         ) : (
-          <p className="mt-3 text-lg">You&apos;ve already voted on every pair. Thanks.</p>
+          <p className="mt-3 text-lg">{tr("vp.done")}</p>
         )}
         {pct !== null && (
           <p className="mt-2 text-graphite">
-            All voters so far picked the redesign <Mark>{pct}%</Mark> of the time, over <span className="num">{all}</span> votes.
+            <Mark>{tr("vp.all", { pct: `${pct}%`, n: all })}</Mark>
           </p>
         )}
         <ul className="mt-8 grid gap-4">
@@ -117,16 +119,14 @@ export function VoteView() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={b.original} alt={`Real homepage of ${b.brand}`} className="aspect-[16/8] w-full rounded-control border border-rule object-cover object-top" />
                 <p>
-                  <span className="font-semibold">{b.brand}</span>: homepage {redesignLetter} was the Glowup redesign, {redesignLetter === "A" ? "B" : "A"} was the real site. You picked{" "}
-                  {pickedLetter}
-                  {b.picked === "redesign" ? ", the redesign." : ", the real site."}
+                  <span className="font-semibold">{b.brand}</span>: {tr("vp.line", { r: redesignLetter, o: redesignLetter === "A" ? "B" : "A", p: pickedLetter })}
                 </p>
               </li>
             );
           })}
         </ul>
         <Link href="/" className="mt-8 inline-block rounded-control border-[1.5px] border-ink bg-ink px-6 py-3 font-semibold text-sheet hover:bg-graphite">
-          Glow up a site
+          {tr("vp.glow")}
         </Link>
       </div>
     );
@@ -140,14 +140,12 @@ export function VoteView() {
   return (
     <div>
       <p className="max-w-[70ch] text-lg">
-        Each pair shows the same business twice. One is its real homepage, the other is a concept redesign by Glowup, not affiliated with the business. Pick the one
-        that looks better. Scroll inside each page to see all of it. We reveal which is which at the end.
+        {tr("vp.intro")}
       </p>
       <div className="mt-10 flex flex-wrap items-baseline justify-between gap-4">
         <h2 className="display text-2xl">{p.brand}</h2>
         <span className="text-graphite">
-          Pair <span className="num">{ballots.length + 1}</span>
-          {typeof next.remaining === "number" ? <> of <span className="num">{ballots.length + 1 + next.remaining}</span></> : null}
+          {tr("vp.pair", { i: ballots.length + 1, n: ballots.length + 1 + (next.remaining ?? 0) })}
         </span>
       </div>
       <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -155,14 +153,14 @@ export function VoteView() {
           const letter = i === 0 ? "A" : "B";
           return (
             <figure key={`${p.id}-${letter}`} className="min-w-0">
-              <figcaption className="mb-2 font-semibold">Homepage {letter}</figcaption>
+              <figcaption className="mb-2 font-semibold">{tr("vp.home", { x: letter })}</figcaption>
               <Frame side={letter} kind={s.kind} src={s.src} />
               <button
                 onClick={() => void vote(s.isRedesign ? "redesign" : "original")}
                 disabled={busy}
                 className="mt-3 w-full rounded-control border-[1.5px] border-ink bg-ink px-4 py-3 font-semibold text-sheet hover:bg-graphite disabled:opacity-60"
               >
-                {letter} looks better
+                {tr("vp.pick", { x: letter })}
               </button>
             </figure>
           );
@@ -170,7 +168,7 @@ export function VoteView() {
       </div>
       {ballots.length > 0 && (
         <button onClick={() => setFinished(true)} className="mt-6 underline underline-offset-4 hover:text-ink">
-          Finish and reveal
+          {tr("vp.finish")}
         </button>
       )}
     </div>

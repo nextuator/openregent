@@ -26,7 +26,16 @@ export async function POST(req: Request) {
   const enc = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (e: PageEvent) => controller.enqueue(enc.encode(JSON.stringify(e) + "\n"));
+      let closed = false;
+      // The visitor may close the tab mid-run: never write to a closed stream.
+      const send = (e: PageEvent) => {
+        if (closed) return;
+        try {
+          controller.enqueue(enc.encode(JSON.stringify(e) + "\n"));
+        } catch {
+          closed = true;
+        }
+      };
       try {
         const stats = parseStats(hgetallToObject(await redis<string[]>(["HGETALL", "bandit"]).catch(() => [] as string[])));
         for await (const ev of page(tokens, direction, content, siteUrl, stats)) {
@@ -45,7 +54,14 @@ export async function POST(req: Request) {
           send({ type: "error", code: "server", message: "The redesign didn't finish. Try again, or vote on existing glow-ups." });
         }
       } finally {
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+        }
       }
     },
   });

@@ -2,21 +2,23 @@
 
 import { useState } from "react";
 import { Mark } from "./marks";
+import { useT } from "@/lib/i18n";
 
 export type StepState = "pending" | "active" | "done" | "error";
 
 export function Stepper({ labels, states, facts }: { labels: string[]; states: StepState[]; facts: Record<number, string | undefined> }) {
   const allDone = states.every((s) => s === "done");
   const [open, setOpen] = useState(false);
+  const t = useT();
   const activeFact = Object.entries(facts).filter(([, f]) => f).pop()?.[1];
 
   if (allDone && !open) {
     return (
       <div className="mt-4 flex flex-wrap items-center gap-3 text-graphite">
-        <span>All 7 steps done.</span>
+        <span>{t("run.alldone")}</span>
         {activeFact && <Mark>{activeFact}</Mark>}
         <button onClick={() => setOpen(true)} className="underline underline-offset-4 hover:text-ink">
-          Show steps
+          {t("run.showsteps")}
         </button>
       </div>
     );
