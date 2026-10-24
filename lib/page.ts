@@ -3,6 +3,7 @@ import { colorsNamed, wcagContrast } from "culori";
 import { splitParts } from "./assemble";
 import { pickConcept, statsSummary, type ConceptStats } from "./concept";
 import { DESIGN_GUIDE } from "./design-guide";
+import { capImages } from "./images";
 import { complete, completeStream } from "./llm";
 import { nearestToken } from "./tokens";
 import type { Content, Direction, TokensResult } from "./types";
@@ -30,7 +31,7 @@ export function buildPrompt(t: TokensResult, d: Direction, c: Content, siteUrl: 
     `Images (only these URLs, use their alt text or write a faithful description):\n${c.images
       .filter((i) => i.src !== d.keep.logoUrl)
       .slice(0, 12)
-      .map((i) => `- ${i.src}${i.alt ? ` (alt: ${i.alt})` : ""}`)
+      .map((i) => `- ${i.src}${i.w ? ` [${i.w}×${i.h} px${i.w < 700 ? ", small: show at most at its own width, in a frame or grid cell" : ""}]` : ""}${i.alt ? ` (alt: ${i.alt})` : ""}`)
       .join("\n") || "none"}`,
     `Phones: ${c.contact.phones.join(", ") || "none"}`,
     `Emails: ${c.contact.emails.join(", ") || "none"}`,
@@ -422,6 +423,8 @@ Return the complete improved page: <style>…</style> then <header>…</footer>.
     autoFixed = f.fixed;
   }
   const s = sanitizeBody(body, allowed);
+  // Deterministic: never show a photo wider than its real pixel width.
+  s.body = capImages(s.body, Object.fromEntries(c.images.filter((i) => i.w).map((i) => [i.src, { w: i.w!, h: i.h! }])));
   yield {
     type: "final",
     css,

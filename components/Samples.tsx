@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import Link from "next/link";
-import { Thumb } from "./Thumb";
+import { Compare } from "./Compare";
 import { T } from "@/lib/i18n";
 
 /* Home: labelled before/after samples. Only entries marked "sample" in public/runs/index.json, which the blind vote excludes. */
@@ -37,16 +37,7 @@ export async function Samples({ limit = 2 }: { limit?: number }) {
                 <T k="samples.link" />
               </Link>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <figure className="min-w-0">
-                <figcaption className="mb-2 text-sm text-graphite"><T k="samples.before" /></figcaption>
-                <Thumb src={`/runs/${e.slug}/before.jpg`} alt={`Original homepage of ${e.name}`} />
-              </figure>
-              <figure className="min-w-0">
-                <figcaption className="mb-2 text-sm font-semibold"><T k="samples.after" /></figcaption>
-                <Thumb html={html} alt={`Concept redesign of ${e.name}`} />
-              </figure>
-            </div>
+            <Compare before={`/runs/${e.slug}/before.jpg`} html={html} />
           </li>
         ))}
       </ul>

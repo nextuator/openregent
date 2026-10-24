@@ -17,6 +17,19 @@ export type Lang = (typeof LANGS)[number]["id"];
 type Dict = Record<string, string>;
 
 const en: Dict = {
+  "marks.keep": "we keep the primary colour",
+  "marks.logo": "and the logo",
+  "marks.drag": "Drag the red diamonds to where you want the design, then regenerate the page with your target marks.",
+  "marks.line": "Now {now}, target {target}.",
+  "marks.hold": "Hold.",
+  "marks.gap": "Gap {gap}, toward {toward}.",
+  "marks.yours": "Your target mark: the redesign goes here.",
+  "marks.changed": "{n} target marks changed",
+  "marks.unchanged": "Drag a diamond to change the target marks",
+  "marks.regen": "Regenerate with these target marks",
+  "marks.reset": "Reset",
+  "social.deck": "Slide deck",
+  "ba.compare": "Compare",
   "st.brief": "The art director is writing the brief …",
   "st.first": "Designing the first version, live on the right …",
   "st.critic": "The critic is reviewing the page …",
@@ -125,6 +138,19 @@ const en: Dict = {
 };
 
 const de: Dict = {
+  "marks.keep": "wir behalten die Hauptfarbe",
+  "marks.logo": "und das Logo",
+  "marks.drag": "Schieb die roten Rauten dorthin, wo du das Design willst, und lass die Seite mit deinen Zielmarken neu gestalten.",
+  "marks.line": "Jetzt {now}, Ziel {target}.",
+  "marks.hold": "Beibehalten.",
+  "marks.gap": "Abstand {gap}, Richtung {toward}.",
+  "marks.yours": "Deine Zielmarke: Das Redesign geht dorthin.",
+  "marks.changed": "{n} Zielmarken geändert",
+  "marks.unchanged": "Schieb eine Raute, um die Zielmarken zu ändern",
+  "marks.regen": "Mit diesen Zielmarken neu gestalten",
+  "marks.reset": "Zurücksetzen",
+  "social.deck": "Präsentation",
+  "ba.compare": "Vergleichen",
   "st.brief": "Der Art Director schreibt das Briefing …",
   "st.first": "Die erste Version entsteht, rechts live …",
   "st.critic": "Die Kritikerin prüft die Seite …",
@@ -233,6 +259,19 @@ const de: Dict = {
 };
 
 const fr: Dict = {
+  "marks.keep": "nous gardons la couleur principale",
+  "marks.logo": "et le logo",
+  "marks.drag": "Glissez les losanges rouges où vous voulez le design, puis régénérez la page avec vos repères.",
+  "marks.line": "Actuel {now}, cible {target}.",
+  "marks.hold": "Garder.",
+  "marks.gap": "Écart {gap}, vers {toward}.",
+  "marks.yours": "Votre repère : le redesign va là.",
+  "marks.changed": "{n} repères modifiés",
+  "marks.unchanged": "Glissez un losange pour modifier les repères",
+  "marks.regen": "Régénérer avec ces repères",
+  "marks.reset": "Réinitialiser",
+  "social.deck": "Présentation",
+  "ba.compare": "Comparer",
   "st.brief": "Le directeur artistique rédige le brief …",
   "st.first": "Première version en cours, en direct à droite …",
   "st.critic": "La critique examine la page …",
@@ -341,6 +380,19 @@ const fr: Dict = {
 };
 
 const it: Dict = {
+  "marks.keep": "manteniamo il colore principale",
+  "marks.logo": "e il logo",
+  "marks.drag": "Trascina i rombi rossi dove vuoi il design e rigenera la pagina con i tuoi obiettivi.",
+  "marks.line": "Ora {now}, obiettivo {target}.",
+  "marks.hold": "Mantieni.",
+  "marks.gap": "Distanza {gap}, verso {toward}.",
+  "marks.yours": "Il tuo obiettivo: il redesign va lì.",
+  "marks.changed": "{n} obiettivi modificati",
+  "marks.unchanged": "Trascina un rombo per cambiare gli obiettivi",
+  "marks.regen": "Rigenera con questi obiettivi",
+  "marks.reset": "Ripristina",
+  "social.deck": "Presentazione",
+  "ba.compare": "Confronta",
   "st.brief": "Il direttore artistico scrive il brief …",
   "st.first": "Prima versione in corso, dal vivo a destra …",
   "st.critic": "La critica esamina la pagina …",
@@ -450,6 +502,19 @@ const it: Dict = {
 
 // Rumantsch Grischun. Short UI strings; long explanations fall back to German where noted by "de" in DICTS.
 const rm: Dict = {
+  "marks.keep": "nus mantegnin la colur principala",
+  "marks.logo": "ed il logo",
+  "marks.drag": "Stuschà ils rombs cotschens nua che ti vuls il design e lascha crear la pagina da nov.",
+  "marks.line": "Ussa {now}, finamira {target}.",
+  "marks.hold": "Mantegnair.",
+  "marks.gap": "Distanza {gap}, vers {toward}.",
+  "marks.yours": "Tia finamira: il redesign va là.",
+  "marks.changed": "{n} finamiras midadas",
+  "marks.unchanged": "Stuschà in romb per midar las finamiras",
+  "marks.regen": "Crear da nov cun questas finamiras",
+  "marks.reset": "Enavos",
+  "social.deck": "Preschentaziun",
+  "ba.compare": "Cumparar",
   "st.brief": "Il directur artistic scriva il briefing …",
   "st.first": "L’emprima versiun nascha, live a dretga …",
   "st.critic": "La criticra examinescha la pagina …",
@@ -560,6 +625,19 @@ const rm: Dict = {
 
 // Baseldytsch: the default. Missing keys fall back to Swiss Hochdeutsch (de).
 const bs: Dict = {
+  "marks.keep": "mir bhalte d Hauptfarb",
+  "marks.logo": "und s Logo",
+  "marks.drag": "Schieb di rote Rhombe, wo du s Design witt ha, und loss d Syte mit dyne Zielmarke nei gstalte.",
+  "marks.line": "Jetzt {now}, Ziil {target}.",
+  "marks.hold": "So bhalte.",
+  "marks.gap": "Abstand {gap}, Richtig {toward}.",
+  "marks.yours": "Dy Zielmark: s Redesign goht do ane.",
+  "marks.changed": "{n} Zielmarke gänderet",
+  "marks.unchanged": "Schieb e Rhombe, zum d Zielmarke ändere",
+  "marks.regen": "Mit dene Zielmarke nei gstalte",
+  "marks.reset": "Zrugg",
+  "social.deck": "Präsentation",
+  "ba.compare": "Vergliiche",
   "st.brief": "Dr Art Director schrybt s Briefing …",
   "st.first": "Erschti Version wird gstaltet, du gsehsch se rächts entstoh …",
   "st.critic": "D Kritikerin luegt d Syte aa …",

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import type { Run } from "./RunView";
 import { toPng } from "html-to-image";
 import { useT } from "@/lib/i18n";
+import { SlideDeck } from "./SlideDeck";
 import { useShopFonts } from "./TokensView";
 
 /** Same-origin proxy so the PNG export can read the pixels. */
@@ -48,12 +49,25 @@ export function OneSource({ run }: { run: Run }) {
   const t = run.tokens!, d = run.direction!, c = run.content!;
   const tr = useT();
   const postRef = useRef<HTMLDivElement>(null);
-  const slideRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState("");
   const [copied, setCopied] = useState(false);
   const host = (() => { try { return new URL(run.meta?.finalUrl ?? run.url).hostname.replace(/^www\./, ""); } catch { return ""; } })();
   const tag = d.brand.name.replace(/[^\p{L}\p{N}]+/gu, "");
   const caption = `${d.copy.postHeadline}\n\n${d.copy.postLine}\n\n${d.copy.cta}: ${host}\n\n#${tag} #Basel #BaselCity #Basilea #MadeInBasel`;
+  async function downloadNode(node: HTMLElement, w: number, h: number, name: string) {
+    setBusy("slide");
+    try {
+      const url = await toPng(node, { width: w, height: h, pixelRatio: 1, cacheBust: true });
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${tag || "glowup"}-${name}.png`;
+      a.click();
+    } catch (e) {
+      console.warn("PNG export failed", e);
+    } finally {
+      setBusy("");
+    }
+  }
   async function download(ref: React.RefObject<HTMLDivElement | null>, w: number, h: number, name: string) {
     if (!ref.current) return;
     setBusy(name);
@@ -76,6 +90,15 @@ export function OneSource({ run }: { run: Run }) {
   const logo = d.keep.logoUrl ?? c.logoUrl;
   const info = c.contact.hours.slice(0, 3).join(" · ") || c.contact.address.join(", ");
   const vars = shopVars(t.css);
+  const sl = (c.lang || "de").slice(0, 2);
+  const L = (
+    {
+      de: { measured: "Was wir gemessen haben", colours: "Farbwerte", fonts: "Schriften", seo: "SEO-Probleme", system: "Das neue Design-System" },
+      fr: { measured: "Ce que nous avons mesuré", colours: "valeurs de couleur", fonts: "polices", seo: "problèmes SEO", system: "Le nouveau système" },
+      it: { measured: "Cosa abbiamo misurato", colours: "valori di colore", fonts: "caratteri", seo: "problemi SEO", system: "Il nuovo sistema" },
+      en: { measured: "What we measured", colours: "colour values", fonts: "fonts", seo: "SEO issues", system: "The new design system" },
+    } as const
+  )[sl === "fr" || sl === "it" || sl === "en" ? sl : "de"];
 
   const Brand = ({ size }: { size: number }) =>
     logo ? (
@@ -99,9 +122,6 @@ export function OneSource({ run }: { run: Run }) {
           </button>
           <button onClick={() => void download(postRef, 1080, 1080, "post")} disabled={!!busy} className="rounded-control border-[1.5px] border-ink bg-ink px-4 py-2 font-semibold text-sheet hover:bg-graphite disabled:opacity-60">
             {busy === "post" ? tr("social.busy") : tr("social.post")}
-          </button>
-          <button onClick={() => void download(slideRef, 1920, 1080, "slide")} disabled={!!busy} className="rounded-control border-[1.5px] border-ink bg-sheet px-4 py-2 font-semibold hover:bg-paper disabled:opacity-60">
-            {busy === "slide" ? tr("social.busy") : tr("social.slide")}
           </button>
         </div>
       </div>
@@ -132,26 +152,70 @@ export function OneSource({ run }: { run: Run }) {
           </div>
         </Scaled>
       </div>
-      <Scaled w={1920} h={1080} label="Slide, 1920 × 1080" nodeRef={slideRef}>
-        <div data-shop-scope style={{ ...vars, width: 1920, height: 1080, display: "grid", gridTemplateColumns: second ? "1fr 1fr" : "1fr", background: v("color-bg") }}>
-          <div style={{ padding: "120px 112px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <Brand size={72} />
-            <div>
-              <p style={{ fontFamily: v("font-display"), fontSize: 120, lineHeight: 1, margin: 0, color: v("color-text") }}>{d.copy.slideTitle}</p>
-              <p style={{ fontFamily: v("font-body"), fontSize: 44, lineHeight: 1.3, margin: "32px 0 0", color: v("color-text-muted"), maxWidth: "22ch" }}>{d.copy.slideSubtitle}</p>
-            </div>
-            {info ? (
-              <p style={{ fontFamily: v("font-body"), fontSize: 30, margin: 0, color: v("color-text"), borderTop: `3px solid ${v("color-primary")}`, paddingTop: 28 }}>{info}</p>
-            ) : (
+      <SlideDeck
+        label={tr("social.deck")}
+        downloadLabel={tr("social.slide")}
+        busy={busy === "slide"}
+        onDownload={(node) => void downloadNode(node, 1920, 1080, `slide-${node.dataset.n}`)}
+        slides={[
+          // 1. Title
+          <div key="1" data-shop-scope style={{ ...vars, width: 1920, height: 1080, display: "grid", gridTemplateColumns: second ? "1fr 1fr" : "1fr", background: v("color-bg") }}>
+            <div style={{ padding: "120px 112px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <Brand size={72} />
+              <div>
+                <p style={{ fontFamily: v("font-display"), fontSize: 120, lineHeight: 1, margin: 0, color: v("color-text") }}>{d.copy.slideTitle}</p>
+                <p style={{ fontFamily: v("font-body"), fontSize: 44, lineHeight: 1.3, margin: "32px 0 0", color: v("color-text-muted"), maxWidth: "22ch" }}>{d.copy.slideSubtitle}</p>
+              </div>
               <span />
+            </div>
+            {second && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={px(second.src)} alt={second.alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             )}
-          </div>
-          {second && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={px(second.src)} alt={second.alt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          )}
-        </div>
-      </Scaled>
+          </div>,
+          // 2. What we measured
+          <div key="2" data-shop-scope style={{ ...vars, width: 1920, height: 1080, background: v("color-surface"), padding: "120px 112px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <p style={{ fontFamily: v("font-display"), fontSize: 84, lineHeight: 1, margin: 0, color: v("color-text") }}>{L.measured}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 64 }}>
+              {[
+                [String(run.audit?.colors.distinct ?? "–"), L.colours, "9"],
+                [String(run.audit?.fonts.families.length ?? "–"), L.fonts, "2"],
+                [String(run.audit?.health.filter((h) => !h.pass).length ?? "–"), L.seo, "0"],
+              ].map(([now, label, next]) => (
+                <div key={label} style={{ borderTop: `6px solid ${v("color-primary")}`, paddingTop: 32 }}>
+                  <p style={{ fontFamily: v("font-display"), fontSize: 160, lineHeight: 1, margin: 0, color: v("color-text") }}>{now}</p>
+                  <p style={{ fontFamily: v("font-body"), fontSize: 36, margin: "16px 0 0", color: v("color-text-muted") }}>{label}</p>
+                  <p style={{ fontFamily: v("font-body"), fontSize: 36, fontWeight: 700, margin: "24px 0 0", color: v("color-text") }}>→ {next}</p>
+                </div>
+              ))}
+            </div>
+            <Brand size={56} />
+          </div>,
+          // 3. The new design system
+          <div key="3" data-shop-scope style={{ ...vars, width: 1920, height: 1080, background: v("color-bg"), padding: "120px 112px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 96, alignItems: "center" }}>
+            <div>
+              <p style={{ fontFamily: v("font-display"), fontSize: 84, lineHeight: 1, margin: 0, color: v("color-text") }}>{L.system}</p>
+              <p style={{ fontFamily: v("font-display"), fontSize: 64, margin: "56px 0 0", color: v("color-text") }}>{t.tokens.font.display}</p>
+              <p style={{ fontFamily: v("font-body"), fontSize: 40, margin: "12px 0 0", color: v("color-text-muted") }}>{t.tokens.font.body}</p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+              {(["bg", "surface", "text", "primary", "accent", "border"] as const).map((k) => (
+                <div key={k} style={{ height: 200, background: t.tokens.color[k], border: `2px solid ${v("color-border")}` }} />
+              ))}
+            </div>
+          </div>,
+          // 4. Visit
+          <div key="4" data-shop-scope style={{ ...vars, width: 1920, height: 1080, background: v("color-primary"), color: v("color-on-primary"), padding: "120px 112px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <p style={{ fontFamily: v("font-display"), fontSize: 96, lineHeight: 1, margin: 0 }}>{d.copy.cta}</p>
+            <div style={{ fontFamily: v("font-body"), fontSize: 44, lineHeight: 1.5 }}>
+              {c.contact.address.length > 0 && <p style={{ margin: 0 }}>{c.contact.address.join(", ")}</p>}
+              {c.contact.hours.slice(0, 3).map((h) => <p key={h} style={{ margin: 0 }}>{h}</p>)}
+              {c.contact.phones[0] && <p style={{ margin: "24px 0 0", fontWeight: 700 }}>{c.contact.phones[0]}</p>}
+              <p style={{ margin: "24px 0 0" }}>{host}</p>
+            </div>
+          </div>,
+        ]}
+      />
     </div>
   );
 }

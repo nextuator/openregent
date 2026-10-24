@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Run } from "./RunView";
+import { Compare } from "./Compare";
 import { useT } from "@/lib/i18n";
 
 function useWidth<T extends HTMLElement>() {
@@ -19,7 +20,7 @@ function useWidth<T extends HTMLElement>() {
 const FRAME_H = "h-[72vh]";
 
 export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: string }) {
-  const [mode, setMode] = useState<"desktop" | "mobile">("desktop");
+  const [mode, setMode] = useState<"desktop" | "mobile" | "compare">("desktop");
   const t = useT();
   const [ref, width] = useWidth<HTMLDivElement>();
   const frameW = mode === "desktop" ? 1280 : 390;
@@ -44,7 +45,19 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
         >
           {t("ba.mobile")}
         </button>
+        {done && run.viewport && (
+          <button
+            onClick={() => setMode("compare")}
+            aria-pressed={mode === "compare"}
+            className={`rounded-control border-[1.5px] border-ink px-4 py-1.5 ${mode === "compare" ? "bg-ink font-semibold text-sheet" : "bg-sheet"}`}
+          >
+            {t("ba.compare")}
+          </button>
+        )}
       </div>
+      {mode === "compare" && run.html && run.viewport ? (
+        <Compare before={run.viewport} html={run.html} beforeLabel={t("ba.before")} afterLabel={t("ba.after")} />
+      ) : (
       <div className="grid gap-6 md:grid-cols-2">
         <figure className="order-2 min-w-0 md:order-1">
           <figcaption className="mb-2 font-semibold">{t("ba.before")}</figcaption>
@@ -104,6 +117,7 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
           </div>
         </figure>
       </div>
+      )}
     </div>
   );
 }

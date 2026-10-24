@@ -119,6 +119,65 @@ export function RunView() {
   const setStep = (i: number, s: StepState) => setSteps((prev) => prev.map((v, j) => (j === i ? s : v)));
   const failActive = () => setSteps((prev) => prev.map((s) => (s === "active" ? "error" : s)));
 
+  /** Steps 5–6: tokens and the streamed homepage, for a given direction. Reused by "regenerate with these target marks". */
+  const designPhase = async (r0: Run, direction: Direction, runId: string, update: (p: Partial<Run>) => void, current: () => Run) => {
+    const r = r0;
+    void r;
+    setStep(4, "active");
+    const tokens = await postJson<TokensResult>("/api/tokens", { direction, audit: current().audit });
+    update({ tokens });
+    setStep(4, "done");
+
+    // 6: homepage (streamed)
+    setStep(5, "active");
+    const lang = current().content!.lang?.split("-")[0] || "en";
+    const doc = (css: string, body: string) =>
+      assembleDocument({ lang, brand: direction.brand.name, tokensCss: tokens.css, fontsHref: tokens.fontsHref, css, body });
+    const pres = await fetch("/api/page", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...demoHeaders() },
+      body: JSON.stringify({ tokens, direction, content: current().content!, siteUrl: current().meta?.finalUrl ?? current().url, runId }),
+    });
+    if (!pres.ok || !pres.body) {
+      const j = await pres.json().catch(() => null);
+      throw new StepError(j?.error?.message ?? GENERIC);
+    }
+    let raw = "";
+    let last = 0;
+    let pageError = "";
+    let revising = false;
+    await readNdjson<PageEvent>(pres, (e) => {
+      if (e.type === "delta") {
+        raw += e.text;
+        const now = Date.now();
+        if (now - last > 800) {
+          last = now;
+          const p = splitParts(raw);
+          // While the revision streams in, keep showing the first version until the new one has real content,
+          // so the preview never flashes an empty (often dark) page.
+          if (p.body.length > (revising ? 4000 : 800)) {
+            revising = false;
+            setStreamingHtml(doc(p.css, p.body));
+          }
+        }
+      } else if (e.type === "restart") {
+        raw = "";
+        revising = true;
+      } else if (e.type === "status") {
+        const m = e.message;
+        setStatus(/^Writing/.test(m) ? tr("st.brief") : /^Designing/.test(m) ? tr("st.first") : /^Critic/.test(m) ? tr("st.critic") : /^Revising/.test(m) ? tr("st.revise") : m);
+      }
+      else if (e.type === "final") {
+        update({ html: doc(e.css, e.body), report: e.report });
+        setStreamingHtml("");
+        setStatus("");
+      } else if (e.type === "error") pageError = e.message;
+    });
+    if (pageError || !current().html) throw new StepError(pageError || GENERIC);
+    setStep(5, "done");
+    setStep(6, "done");
+  };
+
   const start = useCallback(async (target: string) => {
     setError("");
     setFromCache(false);
@@ -165,60 +224,7 @@ export function RunView() {
       setStep(2, "done");
       setStep(3, "done");
 
-      // 5: tokens
-      setStep(4, "active");
-      const tokens = await postJson<TokensResult>("/api/tokens", { direction, audit: r.audit });
-      update({ tokens });
-      setStep(4, "done");
-
-      // 6: homepage (streamed)
-      setStep(5, "active");
-      const lang = r.content.lang?.split("-")[0] || "en";
-      const doc = (css: string, body: string) =>
-        assembleDocument({ lang, brand: direction.brand.name, tokensCss: tokens.css, fontsHref: tokens.fontsHref, css, body });
-      const pres = await fetch("/api/page", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...demoHeaders() },
-        body: JSON.stringify({ tokens, direction, content: r.content, siteUrl: r.meta?.finalUrl ?? target, runId }),
-      });
-      if (!pres.ok || !pres.body) {
-        const j = await pres.json().catch(() => null);
-        throw new StepError(j?.error?.message ?? GENERIC);
-      }
-      let raw = "";
-      let last = 0;
-      let pageError = "";
-      let revising = false;
-      await readNdjson<PageEvent>(pres, (e) => {
-        if (e.type === "delta") {
-          raw += e.text;
-          const now = Date.now();
-          if (now - last > 800) {
-            last = now;
-            const p = splitParts(raw);
-            // While the revision streams in, keep showing the first version until the new one has real content,
-            // so the preview never flashes an empty (often dark) page.
-            if (p.body.length > (revising ? 4000 : 800)) {
-              revising = false;
-              setStreamingHtml(doc(p.css, p.body));
-            }
-          }
-        } else if (e.type === "restart") {
-          raw = "";
-          revising = true;
-        } else if (e.type === "status") {
-          const m = e.message;
-          setStatus(/^Writing/.test(m) ? tr("st.brief") : /^Designing/.test(m) ? tr("st.first") : /^Critic/.test(m) ? tr("st.critic") : /^Revising/.test(m) ? tr("st.revise") : m);
-        }
-        else if (e.type === "final") {
-          update({ html: doc(e.css, e.body), report: e.report });
-          setStreamingHtml("");
-          setStatus("");
-        } else if (e.type === "error") pageError = e.message;
-      });
-      if (pageError || !r.html) throw new StepError(pageError || GENERIC);
-      setStep(5, "done");
-      setStep(6, "done");
+      await designPhase(r, direction, runId, update, () => r);
       saveCache(r);
     } catch (e) {
       failActive();
@@ -226,6 +232,28 @@ export function RunView() {
       setError(e instanceof StepError ? e.message : "Lost the connection. Try again, or vote on existing glow-ups.");
     }
   }, []);
+
+  /** Regenerate tokens + homepage with user-adjusted target marks (no new capture). */
+  const regenerate = async (direction: Direction) => {
+    setError("");
+    setTab("ba");
+    setStreamingHtml("");
+    setSteps((prev) => prev.map((s, i) => (i < 4 ? "done" : "pending")));
+    let r: Run = { ...run, direction, html: undefined, tokens: undefined, report: undefined };
+    setRun(r);
+    const update = (patch: Partial<Run>) => {
+      r = { ...r, ...patch };
+      setRun(r);
+    };
+    try {
+      await designPhase(r, direction, "", update, () => r);
+      if (!slug) saveCache(r);
+    } catch (e) {
+      failActive();
+      setStatus("");
+      setError(e instanceof StepError ? e.message : GENERIC);
+    }
+  };
 
   useEffect(() => {
     if (started.current) return;
@@ -323,7 +351,7 @@ export function RunView() {
       <div className="mt-8" role="tabpanel">
         {tab === "ba" && <BeforeAfter run={run} streamingHtml={streamingHtml} />}
         {tab === "pitch" && (run.direction && run.audit && run.content ? <Pitch direction={run.direction} audit={run.audit} content={run.content} /> : <Waiting what={tr("t.pitch")} />)}
-        {tab === "marks" && (run.direction ? <TargetMarks direction={run.direction} /> : <Waiting what={tr("t.marks")} />)}
+        {tab === "marks" && (run.direction ? <TargetMarks direction={run.direction} onRegenerate={run.audit && run.content ? (d) => void regenerate(d) : undefined} busy={steps.some((s) => s === "active")} /> : <Waiting what={tr("t.marks")} />)}
         {tab === "audit" && (run.audit && run.content ? <AuditView audit={run.audit} content={run.content} /> : <Waiting what={tr("t.audit")} />)}
         {tab === "tokens" &&
           (run.tokens ? <TokensView result={run.tokens} rawCount={run.audit?.colors.distinct ?? 0} /> : <Waiting what={tr("t.tokens")} />)}

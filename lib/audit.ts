@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { converter, differenceCiede2000, formatHex, parse } from "culori";
+import { measureImages } from "./images";
 import { safeFetch } from "./net";
 import type { Audit, ColorCluster, Content, Counted, HealthCheck } from "./types";
 
@@ -450,6 +451,10 @@ export async function audit(input: AuditInput): Promise<{ audit: Audit; content:
 
   // 3. Page facts
   const content = extractContent($, finalUrl, markdown);
+
+  // 3b. Real image sizes (for honest crops and no upscaling)
+  const imgSizes = await measureImages(content.images.map((i) => i.src));
+  content.images = content.images.map((i) => ({ ...i, ...(imgSizes[i.src] ?? {}) }));
 
   // 4. Density
   const chars = visibleChars(markdown);

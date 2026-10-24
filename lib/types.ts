@@ -63,7 +63,7 @@ export type Content = {
   h1s: string[];
   lang: string;
   nav: string[];
-  images: { src: string; alt: string }[];
+  images: { src: string; alt: string; w?: number; h?: number }[];
   logoUrl: string | null;
   contact: { phones: string[]; emails: string[]; address: string[]; hours: string[] };
   social: { network: string; url: string }[];

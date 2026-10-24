@@ -13,10 +13,9 @@ export default function Home() {
       <header className="flex flex-wrap items-center justify-between gap-3 py-4">
         <span className="flex items-center gap-2">
           <BaselMark size={28} />
-          <span className="display text-xl">Glowup</span>
-          <span className="hidden items-center gap-1.5 text-sm text-graphite sm:flex">
-            Basel <SwissCross size={14} />
-          </span>
+          <SwissCross size={28} />
+          <span className="display ml-1 text-xl">Glowup</span>
+          <span className="hidden text-sm text-graphite sm:inline">Basel</span>
         </span>
         <span className="flex flex-wrap items-center gap-2 sm:gap-3">
           <LangSwitcher />
