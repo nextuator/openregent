@@ -29,7 +29,8 @@ The method comes from a talk at the event, and we reproduce it faithfully:
 3. **Content truth.** Generated pages, posts and slides use only text, images and facts scraped from the shop's own site. Never invent prices, reviews, testimonials, ratings, awards, founding years, staff names or numbers. If the information is missing, omit the section.
 4. **Concept, not impersonation.**
    - Every generated homepage carries a fixed banner: `Concept redesign by {APP_NAME}. Not affiliated with {brand}.` It also carries `<meta name="robots" content="noindex">`.
-   - Generated pages are only ever rendered inside our UI (iframe `srcdoc`) and never get their own URL.
+   - Generated pages are rendered inside our UI (iframe `srcdoc`). The only exception: after the (demo) CHF 9 unlock, the buyer can publish a server-generated page at a private, unguessable `/p/<id>` link with noindex, no scripts and the concept banner kept. Never publish HTML sent by a browser.
+   - Download without the banner only after the buyer confirms they are the owner or act on the owner's behalf.
 5. **Tokens are enforced in code.** Generated CSS and inline styles may not contain colour literals or font families outside the tokens.
    - Validate every output.
    - On a violation, retry once with the list of violations.

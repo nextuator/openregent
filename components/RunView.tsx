@@ -10,6 +10,7 @@ import { AuditView } from "./AuditView";
 import { BeforeAfter } from "./BeforeAfter";
 import { OneSource } from "./OneSource";
 import { Pitch } from "./Pitch";
+import { Unlock } from "./Unlock";
 import { LangSwitcher, useT } from "@/lib/i18n";
 import { Stepper, type StepState } from "./Stepper";
 import { TargetMarks } from "./TargetMarks";
@@ -17,6 +18,7 @@ import { TokensView } from "./TokensView";
 
 export type Run = {
   url: string;
+  runId?: string;
   meta?: CaptureMeta;
   viewport?: string;
   full?: string;
@@ -211,6 +213,7 @@ export function RunView() {
         } else if (e.type === "captured") {
           setQueued(0);
           runId = e.runId;
+          update({ runId: e.runId });
           update({ meta: e.meta, viewport: e.viewport, full: e.full });
           setStep(0, "done");
           setStep(1, "active");
@@ -354,7 +357,12 @@ export function RunView() {
       </div>
 
       <div className="mt-8" role="tabpanel">
-        {tab === "ba" && <BeforeAfter run={run} streamingHtml={streamingHtml} />}
+        {tab === "ba" && (
+          <>
+            <BeforeAfter run={run} streamingHtml={streamingHtml} />
+            <Unlock run={run} slug={slug} />
+          </>
+        )}
         {tab === "pitch" && (run.direction && run.audit && run.content ? <Pitch direction={run.direction} audit={run.audit} content={run.content} /> : <Waiting what={tr("t.pitch")} />)}
         {tab === "marks" && (run.direction ? <TargetMarks direction={run.direction} onRegenerate={run.audit && run.content ? (d) => void regenerate(d) : undefined} busy={steps.some((s) => s === "active")} /> : <Waiting what={tr("t.marks")} />)}
         {tab === "audit" && (run.audit && run.content ? <AuditView audit={run.audit} content={run.content} /> : <Waiting what={tr("t.audit")} />)}
