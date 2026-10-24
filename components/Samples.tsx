@@ -19,15 +19,15 @@ async function load(): Promise<{ e: Entry; html: string }[]> {
   }
 }
 
-export async function Samples() {
-  const samples = await load();
+export async function Samples({ limit = 2 }: { limit?: number }) {
+  const samples = (await load()).slice(0, limit);
   if (!samples.length) return null;
   return (
-    <section aria-labelledby="samples" className="border-t border-rule py-14">
+    <section aria-labelledby="samples" className="pb-4">
       <h2 id="samples" className="display text-2xl">
         <T k="samples.title" />
       </h2>
-      <p className="mt-2 max-w-[60ch] text-graphite"><T k="samples.sub" /></p>
+      
       <ul className="mt-8 grid gap-10">
         {samples.map(({ e, html }) => (
           <li key={e.slug}>

@@ -1,21 +1,42 @@
-/** A simplified Basel crosier (Baslerstab) in ink, as a small local mark. Decorative. */
-export function BaselMark({ size = 22 }: { size?: number }) {
+/* Basel motifs, drawn in code. We use the flag form (black Baslerstab on a white square), which anyone may use,
+   not the cantonal coat of arms in its shield form, which Swiss law reserves for the canton. */
+
+/** The Baslerstab (crozier) alone, in the given colour. */
+export function Baslerstab({ size = 24, color = "var(--color-ink)", className = "" }: { size?: number; color?: string; className?: string }) {
   return (
-    <svg aria-hidden width={size} height={size * 1.4} viewBox="0 0 20 28" className="shrink-0">
-      <path
-        d="M10 2c3.6 0 6 2.3 6 5.4 0 2.6-1.8 4.3-4 4.6l1.6 2.2H8.9l1.4-2.3C8.5 11.7 7.4 10.6 7.4 9c0-1.6 1.2-2.7 2.7-2.7 1.2 0 2 .7 2 1.6 0 .8-.6 1.3-1.3 1.3-.4 0-.8-.2-1-.5.1 1 .9 1.6 2 1.6 1.7 0 2.8-1.2 2.8-2.9C14.6 5.2 12.7 3.8 10 3.8 7 3.8 4.8 6 4.8 9c0 1.5.5 2.8 1.4 3.8L4.4 14C3.3 12.7 2.8 11 2.8 9.2 2.8 5 5.9 2 10 2Z M9.2 15h1.6v8.2l2.4 1.6v1.4H6.8v-1.4l2.4-1.6Z"
-        fill="var(--color-ink)"
-      />
+    <svg aria-hidden width={size} height={size} viewBox="0 0 100 100" className={`shrink-0 ${className}`}>
+      {/* crook */}
+      <path d="M50 44 V30 C50 14 76 12 74 30 C73 40 61 41 60 33" fill="none" stroke={color} strokeWidth="9" strokeLinecap="round" />
+      {/* knot */}
+      <path d="M36 47 L50 40 L64 47 L57 52 L50 49 L43 52 Z" fill={color} />
+      {/* shaft */}
+      <rect x="45.5" y="50" width="9" height="28" fill={color} />
+      {/* foot with three points */}
+      <path d="M38 77 H62 L59 85 L54.5 81 L50 92 L45.5 81 L41 85 Z" fill={color} />
     </svg>
   );
 }
 
-/** Swiss cross in a red square (the flag), decorative. */
+/** The Basel flag: black Baslerstab on a white square with a fine black frame. */
+export function BaselMark({ size = 24 }: { size?: number }) {
+  return (
+    <span className="inline-flex shrink-0 border-[1.5px] border-ink bg-sheet" style={{ width: size, height: size }} aria-hidden>
+      <Baslerstab size={size - 3} />
+    </span>
+  );
+}
+
+/** Swiss cross on red, the flag form. Decorative. */
 export function SwissCross({ size = 16 }: { size?: number }) {
   return (
     <svg aria-hidden width={size} height={size} viewBox="0 0 32 32" className="shrink-0">
-      <rect width="32" height="32" rx="3" fill="var(--color-redline)" />
-      <path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="var(--color-sheet)" />
+      <rect width="32" height="32" fill="var(--color-redline)" />
+      <path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#ffffff" />
     </svg>
   );
+}
+
+/** A solid Basel-black rule under the header. */
+export function BaselBand() {
+  return <div aria-hidden className="h-[3px] w-full bg-ink" />;
 }

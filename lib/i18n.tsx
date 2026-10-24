@@ -17,6 +17,11 @@ export type Lang = (typeof LANGS)[number]["id"];
 type Dict = Record<string, string>;
 
 const en: Dict = {
+  "hero.short": "Paste the address of a Beiz, a bakery or a shop. Glowup measures the old site and redesigns it, in about three minutes.",
+  "sell.p1": "Before and after, from their own content",
+  "sell.p2": "A measured audit, not a gut feeling",
+  "sell.p3": "Instagram post and a ready email",
+  "vote.short": "Real site or redesign? Vote blind. Every vote teaches Glowup which design wins.",
   "sell.kicker": "For agencies and freelancers",
   "sell.title": "Win the shop around the corner as a client.",
   "sell.body": "Glowup turns any old website into a ready pitch pack: before and after, a measured audit, an Instagram post and an email you can send right away. You sell the result, not a promise.",
@@ -113,6 +118,11 @@ const en: Dict = {
 };
 
 const de: Dict = {
+  "hero.short": "Gib die Adresse einer Beiz, einer Bäckerei oder eines Ladens ein. Glowup misst die alte Seite und gestaltet sie neu, in etwa drei Minuten.",
+  "sell.p1": "Vorher-Nachher aus dem eigenen Inhalt",
+  "sell.p2": "Gemessenes Audit statt Bauchgefühl",
+  "sell.p3": "Instagram-Post und fertige Mail",
+  "vote.short": "Echt oder Redesign? Stimm blind ab. Jede Stimme lehrt Glowup, welche Gestaltung gewinnt.",
   "sell.kicker": "Für Agenturen und Freelancer",
   "sell.title": "Gewinne das Geschäft um die Ecke als Kunden.",
   "sell.body": "Glowup macht aus jeder alten Website eine fertige Pitch-Mappe: Vorher-Nachher, gemessenes Audit, Instagram-Post und eine Mail, die du sofort senden kannst. Du verkaufst das Resultat, nicht ein Versprechen.",
@@ -209,6 +219,11 @@ const de: Dict = {
 };
 
 const fr: Dict = {
+  "hero.short": "Collez l'adresse d'une Beiz, d'une boulangerie ou d'une boutique. Glowup mesure l'ancien site et le redessine, en trois minutes environ.",
+  "sell.p1": "Avant-après à partir de leur propre contenu",
+  "sell.p2": "Un audit mesuré, pas une intuition",
+  "sell.p3": "Post Instagram et e-mail prêt",
+  "vote.short": "Vrai site ou redesign ? Votez à l’aveugle. Chaque vote apprend à Glowup quel design gagne.",
   "sell.kicker": "Pour agences et freelances",
   "sell.title": "Gagnez le commerce du coin comme client.",
   "sell.body": "Glowup transforme chaque vieux site en dossier de pitch prêt : avant-après, audit mesuré, post Instagram et un e-mail à envoyer tout de suite. Vous vendez le résultat, pas une promesse.",
@@ -305,6 +320,11 @@ const fr: Dict = {
 };
 
 const it: Dict = {
+  "hero.short": "Incolla l'indirizzo di una Beiz, di una panetteria o di un negozio. Glowup misura il vecchio sito e lo ridisegna, in circa tre minuti.",
+  "sell.p1": "Prima e dopo dai loro contenuti",
+  "sell.p2": "Audit misurato, non a intuito",
+  "sell.p3": "Post Instagram ed e-mail pronta",
+  "vote.short": "Sito vero o redesign? Vota alla cieca. Ogni voto insegna a Glowup quale design vince.",
   "sell.kicker": "Per agenzie e freelance",
   "sell.title": "Conquista il negozio all'angolo come cliente.",
   "sell.body": "Glowup trasforma ogni vecchio sito in un dossier di pitch pronto: prima e dopo, audit misurato, post Instagram e un'e-mail da inviare subito. Vendi il risultato, non una promessa.",
@@ -402,6 +422,11 @@ const it: Dict = {
 
 // Rumantsch Grischun. Short UI strings; long explanations fall back to German where noted by "de" in DICTS.
 const rm: Dict = {
+  "hero.short": "Encollescha l'adressa d'ina Beiz, d'ina furnaria u d'ina butia. Glowup mesira la veglia pagina e la creescha da nov, en var trais minutas.",
+  "sell.p1": "Avant e suenter ord l’agen cuntegn",
+  "sell.p2": "Audit mesirà empè da sentiment",
+  "sell.p3": "Post d’Instagram ed e-mail pront",
+  "vote.short": "Vaira u redesign? Vota a l’orba. Mintga vusch mussa a Glowup tge design gudogna.",
   "sell.kicker": "Per agenturas e freelancers",
   "sell.title": "Gudogna la butia al chantun sco clienta.",
   "sell.body": "Glowup fa ord mintga veglia pagina web in dossier da pitch: avant e suenter, audit mesirà, post d'Instagram ed in e-mail pront per trametter.",
@@ -500,6 +525,11 @@ const rm: Dict = {
 
 // Baseldytsch: the default. Missing keys fall back to Swiss Hochdeutsch (de).
 const bs: Dict = {
+  "hero.short": "Gib d Adrässe vo dyner Beiz, vom Beck oder vom Lädeli y. Glowup misst die alti Syte und macht sie nei, in öppe drei Minute.",
+  "sell.p1": "Vorhär-Nochhär us em eigene Inhalt",
+  "sell.p2": "Gmässene Audit statt Bauchgfühl",
+  "sell.p3": "Instagram-Post und fertigs Mail",
+  "vote.short": "Richtig oder Redesign? Stimm blind ab. Jedi Stimm lehrt Glowup, weli Gstaltig gwinnt.",
   "sell.kicker": "Für Agenture und Freelancer",
   "sell.title": "Gwinn d Beiz um d Egge als Kundin.",
   "sell.body": "Glowup macht us jedere alte Websyte e fertigi Pitch-Mappe: Vorhär-Nochhär, gmässene Audit, Instagram-Post und e Mail, wo du grad cha schicke. Du verkaufsch s Resultat, nit e Verspräche.",

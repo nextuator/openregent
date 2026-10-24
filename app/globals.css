@@ -7,13 +7,13 @@
   --color-*: initial;
   --color-transparent: transparent;
   --color-current: currentColor;
-  --color-paper: #f3f1ec;
+  --color-paper: #f4f4f2;
   --color-sheet: #ffffff;
-  --color-ink: #141414;
-  --color-graphite: #55524c;
-  --color-rule: #d9d4ca;
-  --color-highlight: #ffe04a;
-  --color-redline: #c8102e;
+  --color-ink: #000000;
+  --color-graphite: #4d4d4d;
+  --color-rule: #d4d4d4;
+  --color-highlight: #ffd6d2;
+  --color-redline: #d52b1e;
 
   /* --gl-sans / --gl-serif are set by next/font/google (Inter, Fraunces) */
   --font-sans: var(--gl-sans), ui-sans-serif, system-ui, sans-serif;

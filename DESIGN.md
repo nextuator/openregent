@@ -5,7 +5,7 @@ This file styles **the Glowup app only**. Never apply it to generated shop pages
 ## Idea: the editor's markup
 
 Glowup is a design audit, so the UI borrows from an editor marking up a proof:
-- The app is a calm, warm-paper proof sheet (editorial direction B, chosen 24 Oct).
+- The app is a calm proof sheet in Basel black and white, with Swiss red as the only accent (24 Oct). The Basel flag (black Baslerstab on white) and the Swiss cross appear as marks; never the cantonal coat of arms in shield form (Wappenschutzgesetz).
 - **Highlighter yellow** marks measured facts: the evidence.
 - **Red pen** marks what should change: targets, gaps, failed checks.
 - The only thing that glows is the redesign.
@@ -30,13 +30,13 @@ The scale and axes are the same as in the talk:
 
 | Token | Hex | Use |
 |---|---|---|
-| paper | `#F3F1EC` | page background (warm paper) |
+| paper | `#F4F4F2` | page background (neutral, near white) |
 | sheet | `#FFFFFF` | panels, frames |
-| ink | `#141414` | text, icons, primary button fill |
-| graphite | `#55524C` | secondary text (6.9:1 on paper) |
-| rule | `#D9D4CA` | 1px borders and dividers |
-| highlight | `#FFE04A` | measured values, the highlighted headline phrase, the redesign frame outline |
-| redline | `#C8102E` | target diamonds, gap segments, failed checks, "change" text marks (5.2:1 on paper) |
+| ink | `#000000` | Basel black: text, Baslerstab, primary button fill |
+| graphite | `#4D4D4D` | secondary text (7.7:1 on paper) |
+| rule | `#D4D4D4` | 1px borders and dividers |
+| highlight | `#FFD6D2` | red-pen marker behind measured values and the headline phrase (ink on it 15.8:1) |
+| redline | `#D52B1E` | Swiss red: cross, target diamonds, gaps, failed checks (5.0:1 on white) |
 
 Banned colours:
 - Purple or violet gradients (the event's own look).
