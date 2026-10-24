@@ -1,0 +1,58 @@
+/* Glowup app tokens: paste into app/globals.css (Tailwind v4).
+   App UI only. Shop tokens are generated per run and never go in here. */
+@import "tailwindcss";
+
+@theme {
+  /* Remove Tailwind's default palette so only these colours exist */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-paper: #eef0f2;
+  --color-sheet: #ffffff;
+  --color-ink: #000000;
+  --color-graphite: #4a4f57;
+  --color-rule: #c8ccd2;
+  --color-highlight: #ffe04a;
+  --color-redline: #d0213b;
+
+  /* --font-archivo is the CSS variable set by next/font/google */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --text-sm: 14px;
+  --text-sm--line-height: 1.45;
+  --text-base: 17px;
+  --text-base--line-height: 1.5;
+  --text-lg: 21px;
+  --text-lg--line-height: 1.4;
+  --text-xl: 27px;
+  --text-xl--line-height: 1.2;
+  --text-2xl: 34px;
+  --text-2xl--line-height: 1.1;
+  --text-3xl: 54px;
+  --text-3xl--line-height: 1.02;
+  --text-hero: 84px;
+  --text-hero--line-height: 1;
+
+  --radius-control: 6px;
+  --radius-frame: 10px;
+
+  --shadow-lift: 0 24px 60px rgb(0 0 0 / 0.18);
+}
+
+@layer base {
+  html { background: var(--color-paper); color: var(--color-ink); }
+  body { font-family: var(--font-sans); font-size: var(--text-base); }
+  :focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
+  .display { font-stretch: 118%; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .num { font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+/* Wrapper for shop previews (post, slide). Variables are set inline from toCss(tokens, "shop-"). */
+[data-shop-scope] {
+  background: var(--shop-color-bg);
+  color: var(--shop-color-text);
+  font-family: var(--shop-font-body);
+}
