@@ -14,7 +14,7 @@ type Pair = { id: string; host: string; brand: string; original: string; redesig
 function stripBanner(html: string): string {
   return html
     .replace(/<div class="glowup-concept-banner"[\s\S]*?<\/div>/, "")
-    .replace("</head>", "<style>body{padding-top:0!important}</style></head>");
+    .replace("</head>", "<style>body{padding-top:0!important}html,body{overflow:hidden!important;scrollbar-width:none}</style></head>");
 }
 
 async function savedPool(): Promise<Saved[]> {

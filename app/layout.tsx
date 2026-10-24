@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Archivo } from "next/font/google";
+import { Instrument_Sans, Instrument_Serif } from "next/font/google";
 import { APP_NAME, APP_URL } from "@/lib/config";
 import "./globals.css";
 
-const archivo = Archivo({
-  variable: "--font-archivo",
-  subsets: ["latin"],
-  axes: ["wdth"],
-});
+const sans = Instrument_Sans({ variable: "--gl-sans", subsets: ["latin"], axes: ["wdth"] });
+const serif = Instrument_Serif({ variable: "--gl-serif", subsets: ["latin"], weight: "400", style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -18,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${archivo.variable} h-full antialiased`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

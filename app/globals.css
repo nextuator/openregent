@@ -15,8 +15,9 @@
   --color-highlight: #ffe04a;
   --color-redline: #d0213b;
 
-  /* --font-archivo is the CSS variable set by next/font/google */
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  /* --gl-sans / --gl-serif are set by next/font/google (Instrument Sans, Instrument Serif) */
+  --font-sans: var(--gl-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--gl-serif), Georgia, serif;
 
   --text-sm: 14px;
   --text-sm--line-height: 1.45;
@@ -41,9 +42,9 @@
 
 @layer base {
   html { background: var(--color-paper); color: var(--color-ink); }
-  body { font-family: var(--font-sans); font-size: var(--text-base); }
+  body { font-family: var(--gl-sans), ui-sans-serif, system-ui, sans-serif; font-size: var(--text-base); }
   :focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
-  .display { font-stretch: 118%; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .display { font-family: var(--gl-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.015em; line-height: 0.98; }
   .num { font-variant-numeric: tabular-nums; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
