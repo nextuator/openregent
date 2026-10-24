@@ -17,6 +17,13 @@ export type Lang = (typeof LANGS)[number]["id"];
 type Dict = Record<string, string>;
 
 const en: Dict = {
+  "st.brief": "The art director is writing the brief …",
+  "st.first": "Designing the first version, live on the right …",
+  "st.critic": "The critic is reviewing the page …",
+  "st.revise": "Revising with the critic’s notes …",
+  "load.title": "Glowing up your website",
+  "load.eta": "takes about 3 to 4 minutes",
+  "load.tip": "Keep this page open. Once the redesign starts you can watch it being built live. The Pitch tab will have the ready email afterwards.",
   "hero.short": "Paste the address of a Beiz, a bakery or a shop. Glowup measures the old site and redesigns it, in about three minutes.",
   "sell.p1": "Before and after, from their own content",
   "sell.p2": "A measured audit, not a gut feeling",
@@ -118,6 +125,13 @@ const en: Dict = {
 };
 
 const de: Dict = {
+  "st.brief": "Der Art Director schreibt das Briefing …",
+  "st.first": "Die erste Version entsteht, rechts live …",
+  "st.critic": "Die Kritikerin prüft die Seite …",
+  "st.revise": "Überarbeitung mit den Notizen der Kritikerin …",
+  "load.title": "Wir polieren deine Website auf",
+  "load.eta": "dauert etwa 3 bis 4 Minuten",
+  "load.tip": "Lass die Seite offen. Sobald das Redesign beginnt, siehst du es live entstehen. Im Tab «Pitchen» wartet danach die fertige Mail.",
   "hero.short": "Gib die Adresse einer Beiz, einer Bäckerei oder eines Ladens ein. Glowup misst die alte Seite und gestaltet sie neu, in etwa drei Minuten.",
   "sell.p1": "Vorher-Nachher aus dem eigenen Inhalt",
   "sell.p2": "Gemessenes Audit statt Bauchgefühl",
@@ -219,6 +233,13 @@ const de: Dict = {
 };
 
 const fr: Dict = {
+  "st.brief": "Le directeur artistique rédige le brief …",
+  "st.first": "Première version en cours, en direct à droite …",
+  "st.critic": "La critique examine la page …",
+  "st.revise": "Révision avec les notes de la critique …",
+  "load.title": "Nous refaisons votre site",
+  "load.eta": "environ 3 à 4 minutes",
+  "load.tip": "Laissez la page ouverte. Dès que le redesign commence, vous le voyez se construire en direct. L'onglet « Pitcher » contiendra ensuite l'e-mail prêt.",
   "hero.short": "Collez l'adresse d'une Beiz, d'une boulangerie ou d'une boutique. Glowup mesure l'ancien site et le redessine, en trois minutes environ.",
   "sell.p1": "Avant-après à partir de leur propre contenu",
   "sell.p2": "Un audit mesuré, pas une intuition",
@@ -320,6 +341,13 @@ const fr: Dict = {
 };
 
 const it: Dict = {
+  "st.brief": "Il direttore artistico scrive il brief …",
+  "st.first": "Prima versione in corso, dal vivo a destra …",
+  "st.critic": "La critica esamina la pagina …",
+  "st.revise": "Revisione con le note della critica …",
+  "load.title": "Stiamo rifacendo il tuo sito",
+  "load.eta": "circa 3–4 minuti",
+  "load.tip": "Lascia la pagina aperta. Appena inizia il redesign lo vedi nascere dal vivo. Nella scheda «Pitch» troverai poi l'e-mail pronta.",
   "hero.short": "Incolla l'indirizzo di una Beiz, di una panetteria o di un negozio. Glowup misura il vecchio sito e lo ridisegna, in circa tre minuti.",
   "sell.p1": "Prima e dopo dai loro contenuti",
   "sell.p2": "Audit misurato, non a intuito",
@@ -422,6 +450,13 @@ const it: Dict = {
 
 // Rumantsch Grischun. Short UI strings; long explanations fall back to German where noted by "de" in DICTS.
 const rm: Dict = {
+  "st.brief": "Il directur artistic scriva il briefing …",
+  "st.first": "L’emprima versiun nascha, live a dretga …",
+  "st.critic": "La criticra examinescha la pagina …",
+  "st.revise": "Revisiun cun las notas da la criticra …",
+  "load.title": "Nus renovain tia pagina web",
+  "load.eta": "dura var 3 fin 4 minutas",
+  "load.tip": "Laschà la pagina averta. Uschespert ch’il redesign cumenza, al vesas ti nascher live.",
   "hero.short": "Encollescha l'adressa d'ina Beiz, d'ina furnaria u d'ina butia. Glowup mesira la veglia pagina e la creescha da nov, en var trais minutas.",
   "sell.p1": "Avant e suenter ord l’agen cuntegn",
   "sell.p2": "Audit mesirà empè da sentiment",
@@ -525,6 +560,13 @@ const rm: Dict = {
 
 // Baseldytsch: the default. Missing keys fall back to Swiss Hochdeutsch (de).
 const bs: Dict = {
+  "st.brief": "Dr Art Director schrybt s Briefing …",
+  "st.first": "Erschti Version wird gstaltet, du gsehsch se rächts entstoh …",
+  "st.critic": "D Kritikerin luegt d Syte aa …",
+  "st.revise": "Überarbeitig mit de Notize vo dr Kritikerin …",
+  "load.title": "Mir poliere dy Websyte uff",
+  "load.eta": "dauert öppe 3 bis 4 Minute",
+  "load.tip": "Du chasch d Syte offe loo. Sobald s Redesign afangt, gsehsch es live entstoh. Im Tab «Pitche» wartet nochhär s fertige Mail.",
   "hero.short": "Gib d Adrässe vo dyner Beiz, vom Beck oder vom Lädeli y. Glowup misst die alti Syte und macht sie nei, in öppe drei Minute.",
   "sell.p1": "Vorhär-Nochhär us em eigene Inhalt",
   "sell.p2": "Gmässene Audit statt Bauchgfühl",
@@ -605,7 +647,7 @@ const bs: Dict = {
   "err.free": "Dä Versuech zellt nit zu dyne Glow-ups vo hüt.",
   "err.try": "Anderi Syte probiere",
   "err.vote": "Über Glow-ups abstimme",
-  "ba.before": "Vorhär", "ba.after": "Nochhär", "ba.desktop": "Desktop zaige", "ba.mobile": "Händy zaige",
+  "ba.before": "Vorhär", "ba.after": "Nochhär", "ba.desktop": "Desktop zaige", "ba.mobile": "Natel zaige",
   "ba.wait": "S Redesign chunnt do, sobald d Tokens baut sin.",
   "ba.shot": "Do chunnt dr Screenshot vo dr Originalsyte.",
   "ba.desktopnote": "S Original isch in Desktop-Breiti uffgnoh worde.",

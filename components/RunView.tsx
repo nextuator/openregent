@@ -199,7 +199,10 @@ export function RunView() {
           }
         } else if (e.type === "restart") {
           raw = "";
-        } else if (e.type === "status") setStatus(e.message);
+        } else if (e.type === "status") {
+          const m = e.message;
+          setStatus(/^Writing/.test(m) ? tr("st.brief") : /^Designing/.test(m) ? tr("st.first") : /^Critic/.test(m) ? tr("st.critic") : /^Revising/.test(m) ? tr("st.revise") : m);
+        }
         else if (e.type === "final") {
           update({ html: doc(e.css, e.body), report: e.report });
           setStreamingHtml("");
@@ -268,8 +271,7 @@ export function RunView() {
         </span>
       </div>
 
-      <Stepper labels={STEP_LABELS.map((_, i) => tr(`s${i + 1}`))} states={steps} facts={facts} />
-      {status && <p className="mt-2 text-sm text-graphite">{status}</p>}
+      <Stepper labels={STEP_LABELS.map((_, i) => tr(`s${i + 1}`))} states={steps} facts={facts} status={status} />
       {fromCache && (
         <p className="mt-2 text-sm text-graphite">
           {tr("run.cached")}{" "}

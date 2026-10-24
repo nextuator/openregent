@@ -86,7 +86,18 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
                   />
                 </div>
               ) : (
-                <p className="flex h-full items-center justify-center p-6 text-graphite">{t("ba.wait")}</p>
+                <div className="flex h-full flex-col gap-5 p-6" aria-label={t("ba.wait")}>
+                  <div className="h-4 w-1/3 animate-pulse bg-paper" />
+                  <div className="h-14 w-4/5 animate-pulse bg-paper" />
+                  <div className="h-14 w-3/5 animate-pulse bg-paper" />
+                  <div className="h-40 w-full animate-pulse bg-paper" />
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="h-24 animate-pulse bg-paper" />
+                    <div className="h-24 animate-pulse bg-paper" />
+                    <div className="h-24 animate-pulse bg-paper" />
+                  </div>
+                  <p className="mt-auto text-sm text-graphite">{t("ba.wait")}</p>
+                </div>
               )}
             </div>
             {done && <Glow />}
