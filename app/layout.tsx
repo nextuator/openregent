@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="de" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
+    <html lang="gsw" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
       <body className="min-h-full">
         <LangProvider>{children}</LangProvider>
       </body>

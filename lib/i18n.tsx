@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 /* App UI in the Swiss languages (plus English). Generated redesigns always use the shop's own language. */
 
 export const LANGS = [
+  { id: "bs", label: "Baseldytsch", name: "Baseldytsch" },
   { id: "de", label: "DE", name: "Deutsch" },
   { id: "fr", label: "FR", name: "Français" },
   { id: "it", label: "IT", name: "Italiano" },
@@ -471,14 +472,107 @@ const rm: Dict = {
   "social.busy": "Preparar il PNG …",
 };
 
-const DICTS: Record<Lang, Dict> = { en, de, fr, it, rm };
+
+// Baseldytsch: the default. Missing keys fall back to Swiss Hochdeutsch (de).
+const bs: Dict = {
+  "nav.vote": "Abstimme",
+  "hero.a": "Zeig jedem Basler Lädeli sy",
+  "hero.b": "besseri Websyte.",
+  "hero.sub": "Gib d Adrässe vonere Beiz, vomene Beck oder vomene Lädeli y. Glowup macht die richtigi Syte uff, misst ihr Design im CSS und macht sie nei, mit em passende Instagram-Post und emene fertige Pitch zum Verkaufe.",
+  "hero.try": "Probier e Beiz im Glaibasel, e Beck am Spalebärg oder e Lädeli im Gundeli.",
+  "form.label": "Websyte-Adrässe",
+  "form.button": "Glow it up",
+  "form.error": "Gib e Websyte-Adrässe y, zum Byspiil beck-byspiil.ch.",
+  "limits.left": "Du hesch hüt no {n} vo {max} Live-Glow-ups. Jedi Websyte cha maximal 3 Mol uffpoliert wärde.",
+  "limits.none": "Dyni {max} Live-Glow-ups für hüt sin verbrucht. S Abstimme goht aber immer.",
+  "proof.caption": "Audit vonere Basler Beiz-Websyte",
+  "proof.literals": "Farbwärt",
+  "proof.distinct": "verschiideni",
+  "proof.families": "Schrifte",
+  "proof.becomes": "Wird zu",
+  "proof.tokens": "9 Tokens",
+  "method.title": "D Methode",
+  "m1.t": "Audit", "m1.d": "Mir mache die richtigi Syte uff und zelle jedi Farb, Schrift, Rundig und jede Schatte im CSS.",
+  "m2.t": "Zielmarke", "m2.d": "Sibe Achse, vo warm bis kalt und vo dicht bis luftig: wo si hüt stoht, wo si sött aane.",
+  "m3.t": "Design-Tokens", "m3.d": "E chlyne Satz Farbe, Schrifte und Abständ, im Code uff Kontrascht prüeft.",
+  "m4.t": "Ei Quelle", "m4.d": "Neii Startsyte, Instagram-Post und Folie, alles us de glyche Tokens.",
+  "diff.title": "Kai Websyte-Baukaschte. E Pitch-Maschine.",
+  "diff.1t": "Fangt bim richtige Gschäft aa", "diff.1d": "Baukäschte fange mit eme leere Prompt aa. Glowup fangt mit dr Syte, de Fotene, Öffnigszyte und Wort vom Gschäft aa und misst, was nit stimmt.",
+  "diff.2t": "Bewyys statt Verspräche", "diff.2d": "Jedi Zahl isch im Code gmässe. D Inhaberin gseht ihri eigeni Syte näbe ere bessere, mitsamt em passende Post.",
+  "diff.3t": "Fertig zum Verschicke", "diff.3d": "Glowup schrybt s Mail mit de drei gröschte Befund. Agenture und Freelancer pitche mit em Resultat statt mit eme Moodboard.",
+  "samples.title": "Byspiil",
+  "samples.sub": "Richtigi alti Websyte us dr Region Basel, gmässe und nei gmacht us ihrem eigene Inhalt. Die zwei sin nit bim Abstimme derby.",
+  "samples.link": "Audit, Zielmarke und Tokens aaluege",
+  "samples.before": "Vorhär",
+  "samples.after": "Nochhär",
+  "learns.title": "Es lehrt vo eure Stimme",
+  "learns.body": "Jedes Redesign folgt eine vo sibe Art Directions. Jedi Blind-Abstimmig isch en A/B-Test: Het die Richtig die richtigi Syte gschlage? E Thompson-Sampling-Bandit nimmt Richtige, wo meh gwinne, und dr Art Director gseht d Resultat. So wärde neii Glow-ups mit jeder Stimm besser.",
+  "learns.none": "no kai Stimme",
+  "learns.of": "{pct} % vo {n}",
+  "vote.title": "Richtig oder Redesign?",
+  "vote.body": "Zwei Startsyte vom glyche Gschäft näbenenander. Eini isch richtig, eini isch e Glowup-Konzept. Stimm für die scheneri.",
+  "vote.cta": "Abstimme",
+  "tally.none": "No kai Stimme. Bisch du dr Erscht?",
+  "tally.text": "D Lüt hän s Redesign in {pct} vo de Fäll gwählt, bi {n} Stimme.",
+  "tally.redesign": "Redesign",
+  "tally.real": "Richtigi Syte",
+  "footer.made": "Gmacht z Basel fürs Vibe Code Fest 2026",
+  "footer.note": "Nur Konzept-Redesigns. Nüt z due mit de zaigte Gschäft.",
+  "vp.title": "Weli Startsyte isch scheener?",
+  "vp.back": "Zrugg zu Glowup",
+  "vp.intro": "Jedes Paar zaigt s glyche Gschäft zwaimol. Eini isch die richtigi Startsyte, die anderi e Konzept-Redesign vo Glowup. Wähl die scheneri. Scroll in jeder Syte, zum alles gseh. Am Schluss verrote mir, weli weli isch.",
+  "vp.pair": "Paar {i} vo {n}",
+  "vp.home": "Startsyte {x}",
+  "vp.pick": "{x} isch scheener",
+  "vp.finish": "Fertig und uffdecke",
+  "vp.reveal": "D Uflösig",
+  "vp.score": "Du hesch in {k} vo {n} Paar s Glowup-Redesign gwählt.",
+  "vp.done": "Du hesch scho über alli Paar abgstimmt. Merci vylmol.",
+  "vp.all": "Bis jetzt hän alli s Redesign in {pct} vo de Fäll gwählt, bi {n} Stimme.",
+  "vp.line": "Startsyte {r} isch s Glowup-Redesign gsi, {o} die richtigi Syte. Du hesch {p} gwählt.",
+  "vp.glow": "E Syte uffpoliere",
+  "vp.loading": "Paar wird glade …",
+  "run.another": "Anderi Syte uffpoliere",
+  "run.none": "Kai Websyte aagäh",
+  "run.alldone": "Alli 7 Schritt erledigt.",
+  "run.showsteps": "Schritt zaige",
+  "run.cached": "Das isch dy früehners Glow-up vo dere Syte.",
+  "run.again": "Nomol starte",
+  "s1": "Syte imene richtige Browser uffmache", "s2": "CSS mässe", "s3": "Marke läse", "s4": "Zielmarke setze",
+  "s5": "Tokens baue", "s6": "Startsyte gstalte", "s7": "Tokens uff Post und Folie aawände",
+  "t.ba": "Vorhär und nochhär", "t.marks": "Zielmarke", "t.audit": "Audit", "t.tokens": "Tokens", "t.social": "Post und Folie", "t.pitch": "Pitche",
+  "err.title": "Das het nit klappt",
+  "err.free": "Dä Versuech zellt nit zu dyne Glow-ups vo hüt.",
+  "err.try": "Anderi Syte probiere",
+  "err.vote": "Über Glow-ups abstimme",
+  "ba.before": "Vorhär", "ba.after": "Nochhär", "ba.desktop": "Desktop zaige", "ba.mobile": "Händy zaige",
+  "ba.wait": "S Redesign chunnt do, sobald d Tokens baut sin.",
+  "ba.shot": "Do chunnt dr Screenshot vo dr Originalsyte.",
+  "ba.desktopnote": "S Original isch in Desktop-Breiti uffgnoh worde.",
+  "wait": "Warte uff {x}.",
+  "pitch.title": "Em Inhaber pitche",
+  "pitch.sub": "E fertigs Mail us em gmässene Audit. Aapasse und vo dynere eigene Adrässe verschicke.",
+  "pitch.to": "An",
+  "pitch.subject": "Betreff",
+  "pitch.copy": "Mail kopiere",
+  "pitch.copied": "Kopiert",
+  "pitch.mail": "Im Mailprogramm uffmache",
+  "pitch.noemail": "Kai E-Mail-Adrässe uff dr Syte. Nimm d Telefonnummere oder s Kontaktformular.",
+  "social.caption": "Instagram-Text",
+  "social.copy": "Text kopiere",
+  "social.post": "Post abelade",
+  "social.slide": "Folie abelade",
+  "social.busy": "PNG wird gmacht …",
+};
+
+const DICTS: Record<Lang, Dict> = { bs, en, de, fr, it, rm };
 
 export function translate(lang: Lang, key: string, vars: Record<string, string | number> = {}): string {
-  const raw = DICTS[lang][key] ?? DICTS.de[key] ?? en[key] ?? key;
+  const raw = DICTS[lang][key] ?? de[key] ?? en[key] ?? key;
   return raw.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? `{${k}}`));
 }
 
-const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({ lang: "de", setLang: () => {} });
+const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({ lang: "bs", setLang: () => {} });
 
 function detect(): Lang {
   try {
@@ -487,15 +581,16 @@ function detect(): Lang {
   } catch {
     /* ignore */
   }
-  const nav = typeof navigator !== "undefined" ? navigator.language.slice(0, 2) : "de";
-  return (["de", "fr", "it", "rm", "en"] as Lang[]).includes(nav as Lang) ? (nav as Lang) : "de";
+  // Baseldytsch is the default; French and Italian browsers get their language.
+  const nav = typeof navigator !== "undefined" ? navigator.language.slice(0, 2) : "";
+  return (["fr", "it"] as Lang[]).includes(nav as Lang) ? (nav as Lang) : "bs";
 }
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("de");
+  const [lang, setLangState] = useState<Lang>("bs");
   useEffect(() => setLangState(detect()), []);
   useEffect(() => {
-    document.documentElement.lang = lang === "rm" ? "rm" : lang;
+    document.documentElement.lang = lang === "bs" ? "gsw" : lang;
   }, [lang]);
   const setLang = (l: Lang) => {
     setLangState(l);

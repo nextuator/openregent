@@ -38,7 +38,7 @@ async function main() {
         const saved = JSON.parse(readFileSync(path.join(dir, "run.json"), "utf8"));
         rest = await regenerate(saved, used.slice(-3), log, forced[urls.indexOf(url)]);
       } else {
-        const r = await runAll(url, log);
+        const r = await runAll(url, log, forced[urls.indexOf(url)]);
         mkdirSync(dir, { recursive: true });
         writeFileSync(path.join(dir, "before.jpg"), r.viewportJpeg);
         writeFileSync(path.join(dir, "before-full.jpg"), r.fullJpeg);

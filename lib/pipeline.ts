@@ -20,13 +20,14 @@ export type FullRun = {
 };
 
 /** Runs the whole glow-up server-side (used by the prerun script). */
-export async function runAll(url: string, log: (s: string) => void = console.log): Promise<FullRun> {
+export async function runAll(url: string, log: (s: string) => void = console.log, force?: string): Promise<FullRun> {
   const cap = await capture(url);
   log(`captured ${cap.finalUrl} in ${cap.ms} ms`);
   const { audit: a, content } = await audit({ html: cap.html, finalUrl: cap.finalUrl, markdown: cap.markdown, pageHeight: cap.pageHeight });
   log(`audit: ${a.colors.literals} colour literals, ${a.colors.distinct} distinct, ${a.fonts.families.length} families`);
   const d = await direction(a, content, cap.viewportJpeg.toString("base64"));
-  log(`direction: ${d.brand.name}`);
+  if (force) d.concept = force;
+  log(`direction: ${d.brand.name}, concept ${d.concept}`);
   const t = await tokens(d, a);
   log(`tokens: ${t.tokens.font.display} / ${t.tokens.font.body}, notes: ${t.notes.length}`);
   let css = "", body = "", report: PageReport | undefined;
