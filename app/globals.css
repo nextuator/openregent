@@ -41,7 +41,7 @@
 }
 
 @layer base {
-  html { background: var(--color-paper); color: var(--color-ink); }
+  html { background: var(--color-paper); color: var(--color-ink); overflow-x: clip; }
   body { font-family: var(--gl-sans), ui-sans-serif, system-ui, sans-serif; font-size: var(--text-base); }
   :focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
   .display { font-family: var(--gl-serif), Georgia, serif; font-weight: 600; letter-spacing: -0.02em; line-height: 0.98; font-variation-settings: "SOFT" 50, "opsz" 144; }

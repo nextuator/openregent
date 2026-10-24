@@ -12,7 +12,7 @@ export default function VotePage() {
         <h1 className="display text-3xl">
           <T k="vp.title" />
         </h1>
-        <span className="flex items-center gap-4">
+        <span className="flex flex-wrap items-center gap-2 sm:gap-4">
           <LangSwitcher />
           <Link href="/" className="text-graphite underline underline-offset-4 hover:text-ink">
             <T k="vp.back" />

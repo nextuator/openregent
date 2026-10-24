@@ -260,7 +260,7 @@ export function RunView() {
     <main className="mx-auto max-w-[1280px] px-4 py-8 sm:px-8">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h1 className="display break-all text-2xl sm:text-3xl">{host || tr("run.none")}</h1>
-        <span className="flex items-center gap-4">
+        <span className="flex flex-wrap items-center gap-2 sm:gap-4">
           <LangSwitcher />
           <Link href="/" className="text-graphite underline underline-offset-4 hover:text-ink">
             {tr("run.another")}

@@ -18,9 +18,9 @@ export default function Home() {
             Basel <SwissCross size={14} />
           </span>
         </span>
-        <span className="flex items-center gap-3">
+        <span className="flex flex-wrap items-center gap-2 sm:gap-3">
           <LangSwitcher />
-          <span aria-hidden className="h-6 w-px bg-rule" />
+          <span aria-hidden className="hidden h-6 w-px bg-rule sm:block" />
           <Link href="/vote" className="rounded-control border-[1.5px] border-ink px-3 py-1 font-semibold hover:bg-ink hover:text-sheet">
             <T k="nav.vote" />
           </Link>

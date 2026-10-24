@@ -680,16 +680,23 @@ export function T({ k, v }: { k: string; v?: Record<string, string | number> }) 
 export function LangSwitcher() {
   const { lang, setLang } = useLang();
   return (
-    <div role="group" aria-label="Language" className="flex gap-1 text-sm">
+    <div role="group" aria-label="Language" className="flex flex-wrap gap-0.5 text-sm">
       {LANGS.map((l) => (
         <button
           key={l.id}
           onClick={() => setLang(l.id)}
           aria-pressed={lang === l.id}
           title={l.name}
-          className={`rounded-control px-2 py-1 ${lang === l.id ? "bg-ink font-semibold text-sheet" : "text-graphite hover:text-ink"}`}
+          className={`rounded-control px-1.5 py-1 sm:px-2 ${lang === l.id ? "bg-ink font-semibold text-sheet" : "text-graphite hover:text-ink"}`}
         >
-          {l.label}
+          {l.id === "bs" ? (
+            <>
+              <span className="sm:hidden">BS</span>
+              <span className="hidden sm:inline">{l.label}</span>
+            </>
+          ) : (
+            l.label
+          )}
         </button>
       ))}
     </div>
