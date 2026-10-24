@@ -141,8 +141,10 @@ export function RunView() {
         throw new StepError(j?.error?.message ?? "Couldn't open that site. Check the address or pick a saved glow-up below.");
       }
       let analyzeError = "";
+      let runId = "";
       await readNdjson<AnalyzeEvent>(res, (e) => {
         if (e.type === "captured") {
+          runId = e.runId;
           update({ meta: e.meta, viewport: e.viewport, full: e.full });
           setStep(0, "done");
           setStep(1, "active");
@@ -174,7 +176,7 @@ export function RunView() {
       const pres = await fetch("/api/page", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...demoHeaders() },
-        body: JSON.stringify({ tokens, direction, content: r.content, siteUrl: r.meta?.finalUrl ?? target }),
+        body: JSON.stringify({ tokens, direction, content: r.content, siteUrl: r.meta?.finalUrl ?? target, runId }),
       });
       if (!pres.ok || !pres.body) {
         const j = await pres.json().catch(() => null);
@@ -272,9 +274,14 @@ export function RunView() {
       {error && (
         <div role="alert" className="mt-6 rounded-control border-[1.5px] border-redline bg-sheet p-4">
           <p className="font-semibold text-redline">{error}</p>
-          <Link href="/#saved" className="mt-1 inline-block underline underline-offset-4">
-            See saved glow-ups
-          </Link>
+          <span className="mt-1 flex flex-wrap gap-4">
+            <Link href="/#saved" className="underline underline-offset-4">
+              See saved glow-ups
+            </Link>
+            <Link href="/vote" className="underline underline-offset-4">
+              Vote on glow-ups
+            </Link>
+          </span>
         </div>
       )}
 

@@ -40,9 +40,11 @@ export function provider(): Provider {
 
 const MODELS: Record<Tier, string> = {
   fast: process.env.LLM_MODEL_FAST || "claude-haiku-5-5",
-  smart: process.env.LLM_MODEL_SMART || "claude-sonnet-5-5",
+  smart: process.env.LLM_MODEL_SMART || "claude-opus-5-5",
 };
-const CLI_ALIAS: Record<Tier, string> = { fast: "haiku", smart: "sonnet" };
+const CLI_ALIAS: Record<Tier, string> = { fast: "haiku", smart: "opus" };
+// Fast calls are well-specified extraction; the homepage is real design work.
+const EFFORT: Record<Tier, "low" | "medium"> = { fast: "low", smart: "medium" };
 
 let client: Anthropic | null = null;
 const api = () => (client ??= new Anthropic({ maxRetries: 1, timeout: 240_000 }));
@@ -56,8 +58,7 @@ function params(o: CompleteOpts): Anthropic.MessageCreateParamsNonStreaming {
     max_tokens: o.maxTokens,
     system: o.system,
     messages: [{ role: "user", content }],
-    // Low effort keeps cost down; these are well-specified generation tasks.
-    output_config: { effort: "low" },
+    output_config: { effort: EFFORT[o.tier] },
   };
 }
 

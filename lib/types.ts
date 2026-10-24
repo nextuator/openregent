@@ -73,7 +73,7 @@ export type Content = {
 /* ---------- Analyze stream events ---------- */
 
 export type AnalyzeEvent =
-  | { type: "captured"; meta: CaptureMeta; viewport: string; full: string }
+  | { type: "captured"; runId: string; meta: CaptureMeta; viewport: string; full: string }
   | { type: "audit"; audit: Audit; content: Content }
   | { type: "error"; code: string; message: string };
 

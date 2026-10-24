@@ -1,5 +1,7 @@
 import { UrlForm } from "@/components/UrlForm";
 import { Gallery } from "@/components/Gallery";
+import { Limits } from "@/components/Limits";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -9,8 +11,18 @@ export default function Home() {
         <UrlForm />
       </div>
       <p className="mt-4 text-graphite">Try a bakery, a bike shop or a dentist in Basel.</p>
+      <div className="mt-2">
+        <Limits />
+      </div>
 
-      <section className="mt-24" aria-labelledby="saved">
+      <section className="mt-16 flex flex-wrap items-center gap-4 rounded-frame border border-rule bg-sheet p-6">
+        <p className="text-lg">Real site or redesign? Vote blind on which homepage looks better.</p>
+        <Link href="/vote" className="rounded-control border-[1.5px] border-ink bg-highlight px-5 py-2 font-semibold hover:brightness-95">
+          Start voting
+        </Link>
+      </section>
+
+      <section className="mt-16" aria-labelledby="saved">
         <h2 id="saved" className="display text-2xl">
           Saved glow-ups
         </h2>

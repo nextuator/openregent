@@ -1,7 +1,9 @@
 import { audit } from "@/lib/audit";
-import { capture, CaptureError } from "@/lib/gaffa";
+import { randomUUID } from "crypto";
+import { capture, CaptureError, normalizeUrl } from "@/lib/gaffa";
 import { checkDemoKey, checkRunCap, guardResponse } from "@/lib/guard";
 import { notify } from "@/lib/notify";
+import { redis } from "@/lib/store";
 import type { AnalyzeEvent } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -9,17 +11,22 @@ export const maxDuration = 300;
 
 /* POST {url} → NDJSON stream: "captured" (meta + screenshots), then "audit" (audit + content). */
 export async function POST(req: Request) {
+  const { url: rawUrl } = (await req.json().catch(() => ({}))) as { url?: string };
+  let url: string;
+  try {
+    url = normalizeUrl(rawUrl ?? "");
+  } catch {
+    return Response.json({ error: { code: "bad_request", message: "That doesn't look like a website address." } }, { status: 400 });
+  }
   try {
     checkDemoKey(req);
-    checkRunCap(req);
+    await checkRunCap(req, new URL(url).hostname);
   } catch (e) {
     const r = guardResponse(e);
     if (r) return r;
     throw e;
   }
-
-  const { url } = (await req.json().catch(() => ({}))) as { url?: string };
-  if (!url) return Response.json({ error: { code: "bad_request", message: "Missing url" } }, { status: 400 });
+  const runId = randomUUID();
 
   const enc = new TextEncoder();
   const stream = new ReadableStream({
@@ -28,10 +35,14 @@ export async function POST(req: Request) {
       try {
         const cap = await capture(url);
         console.log(`[analyze] captured ${cap.finalUrl} in ${cap.ms} ms, credits ${cap.credits}`);
+        const viewport = `data:image/jpeg;base64,${cap.viewportJpeg.toString("base64")}`;
+        // Keep the original's first viewport for the blind vote (30 days).
+        await redis(["SET", `cap:${runId}`, JSON.stringify({ host: new URL(cap.finalUrl).hostname, viewport }), "EX", 30 * 86400]).catch(() => 0);
         send({
           type: "captured",
+          runId,
           meta: { url: cap.url, finalUrl: cap.finalUrl, pageHeight: cap.pageHeight, ms: cap.ms, credits: cap.credits },
-          viewport: `data:image/jpeg;base64,${cap.viewportJpeg.toString("base64")}`,
+          viewport,
           full: `data:image/jpeg;base64,${cap.fullJpeg.toString("base64")}`,
         });
         const t0 = Date.now();

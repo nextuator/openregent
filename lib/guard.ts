@@ -1,20 +1,26 @@
 import { notify } from "./notify";
+import { redis } from "./store";
 
-/* Request guards: optional DEMO_KEY header, plus a best-effort per-IP cap on new live runs.
-   The cap is per serverless instance (no database), so the hard limit is the Anthropic Console spend limit. */
+/* Request guards: optional DEMO_KEY header, a per-IP daily cap on live glow-ups,
+   and a global cap per website (no site is glowed up more than SITE_LIMIT times by anyone).
+   The hard spend limit remains the Anthropic Console workspace limit. */
 
-const RUNS_PER_HOUR = Number(process.env.RUNS_PER_IP_PER_HOUR ?? 6);
-const runs = new Map<string, number[]>();
+export const IP_LIMIT = Number(process.env.RUNS_PER_IP_PER_DAY ?? 3);
+export const SITE_LIMIT = Number(process.env.RUNS_PER_SITE ?? 3);
 
 export class GuardError extends Error {
-  constructor(public code: "demo_key" | "rate_limited", message: string, public status: number) {
+  constructor(public code: "demo_key" | "rate_limited" | "site_limit", message: string, public status: number) {
     super(message);
   }
 }
 
-function ipOf(req: Request): string {
+export function ipOf(req: Request): string {
   return (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("x-real-ip") || "local";
 }
+
+const day = () => new Date().toISOString().slice(0, 10);
+const ipKey = (ip: string) => `ip:${ip}:${day()}`;
+export const siteKey = (host: string) => `site:${host.replace(/^www\./, "").toLowerCase()}`;
 
 export function checkDemoKey(req: Request) {
   const key = process.env.DEMO_KEY;
@@ -23,17 +29,27 @@ export function checkDemoKey(req: Request) {
   }
 }
 
-/** Call once per new live run (in /api/analyze). */
-export function checkRunCap(req: Request) {
-  const ip = ipOf(req);
-  const now = Date.now();
-  const recent = (runs.get(ip) ?? []).filter((t) => now - t < 3600_000);
-  if (recent.length >= RUNS_PER_HOUR) {
-    void notify("soft_cap", `A visitor hit the cap of ${RUNS_PER_HOUR} live runs per hour.`);
-    throw new GuardError("rate_limited", "You've made a lot of glow-ups this hour. Try again later or pick a saved glow-up below.", 429);
+export async function limits(req: Request, host?: string): Promise<{ ipUsed: number; ipLimit: number; siteUsed: number | null; siteLimit: number }> {
+  const [ipUsed, siteUsed] = await Promise.all([
+    redis<string | null>(["GET", ipKey(ipOf(req))]).then(Number).catch(() => 0),
+    host ? redis<string | null>(["GET", siteKey(host)]).then(Number).catch(() => 0) : Promise.resolve(null),
+  ]);
+  return { ipUsed: ipUsed || 0, ipLimit: IP_LIMIT, siteUsed: siteUsed ?? null, siteLimit: SITE_LIMIT };
+}
+
+/** Call once per new live run (in /api/analyze), before any paid work. */
+export async function checkRunCap(req: Request, host: string) {
+  const l = await limits(req, host);
+  if ((l.siteUsed ?? 0) >= SITE_LIMIT) {
+    throw new GuardError("site_limit", `This website already has ${SITE_LIMIT} glow-ups. Pick another site, or vote on the existing ones.`, 409);
   }
-  recent.push(now);
-  runs.set(ip, recent);
+  if (l.ipUsed >= IP_LIMIT) {
+    void notify("soft_cap", `A visitor used all ${IP_LIMIT} live glow-ups for today.`);
+    throw new GuardError("rate_limited", `You've used your ${IP_LIMIT} live glow-ups for today. The saved glow-ups and the vote are always open.`, 429);
+  }
+  const k = ipKey(ipOf(req));
+  const n = await redis<number>(["INCR", k]).catch(() => 0);
+  if (n === 1) await redis(["EXPIRE", k, 2 * 86400]).catch(() => 0);
 }
 
 export function guardResponse(e: unknown): Response | null {
