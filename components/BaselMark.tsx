@@ -9,3 +9,13 @@ export function BaselMark({ size = 22 }: { size?: number }) {
     </svg>
   );
 }
+
+/** Swiss cross in a red square (the flag), decorative. */
+export function SwissCross({ size = 16 }: { size?: number }) {
+  return (
+    <svg aria-hidden width={size} height={size} viewBox="0 0 32 32" className="shrink-0">
+      <rect width="32" height="32" rx="3" fill="var(--color-redline)" />
+      <path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="var(--color-sheet)" />
+    </svg>
+  );
+}

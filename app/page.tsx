@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BaselMark } from "@/components/BaselMark";
+import { BaselMark, SwissCross } from "@/components/BaselMark";
 import { Learning } from "@/components/Learning";
 import { Limits } from "@/components/Limits";
 import { ProofCard } from "@/components/ProofCard";
@@ -18,11 +18,12 @@ export default function Home() {
         <span className="flex items-center gap-2">
           <BaselMark />
           <span className="display text-xl">Glowup</span>
-          <span className="hidden text-sm text-graphite sm:inline">Basel</span>
+          <span className="hidden items-center gap-1.5 text-sm text-graphite sm:flex">Basel <SwissCross size={14} /></span>
         </span>
-        <span className="flex items-center gap-4">
+        <span className="flex items-center gap-3">
           <LangSwitcher />
-          <Link href="/vote" className="text-graphite underline-offset-4 hover:text-ink hover:underline">
+          <span aria-hidden className="h-6 w-px bg-rule" />
+          <Link href="/vote" className="rounded-control border-[1.5px] border-ink px-3 py-1 font-semibold hover:bg-ink hover:text-sheet">
             <T k="nav.vote" />
           </Link>
         </span>
@@ -48,6 +49,28 @@ export default function Home() {
         </div>
         <div className="hidden lg:block">
           <ProofCard />
+        </div>
+      </section>
+
+      <section aria-labelledby="sell" className="mb-14 grid gap-6 rounded-frame bg-ink p-6 text-sheet sm:p-10 md:grid-cols-[1.4fr_1fr] md:items-center">
+        <div>
+          <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-highlight">
+            <SwissCross /> <T k="sell.kicker" />
+          </p>
+          <h2 id="sell" className="display mt-3 text-2xl sm:text-3xl">
+            <T k="sell.title" />
+          </h2>
+          <p className="mt-3 max-w-[56ch] text-sheet/80">
+            <T k="sell.body" />
+          </p>
+        </div>
+        <div className="grid gap-3">
+          <Link href="/glow?run=fahrschule-basel-ch&tab=pitch" className="rounded-control bg-highlight px-6 py-3 text-center font-semibold text-ink hover:brightness-95">
+            <T k="sell.cta" />
+          </Link>
+          <p className="text-center text-sm text-sheet/70">
+            <T k="sell.note" />
+          </p>
         </div>
       </section>
 

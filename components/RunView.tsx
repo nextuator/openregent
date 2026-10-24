@@ -109,7 +109,7 @@ export function RunView() {
   const [run, setRun] = useState<Run>({ url });
   const [steps, setSteps] = useState<StepState[]>(STEP_LABELS.map(() => "pending"));
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<Tab>("ba");
+  const [tab, setTab] = useState<Tab>(((t) => (TABS as readonly string[]).includes(t ?? "") ? (t as Tab) : "ba")(params.get("tab")));
   const tr = useT();
   const [streamingHtml, setStreamingHtml] = useState<string>("");
   const [status, setStatus] = useState("");

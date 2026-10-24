@@ -17,6 +17,11 @@ export type Lang = (typeof LANGS)[number]["id"];
 type Dict = Record<string, string>;
 
 const en: Dict = {
+  "sell.kicker": "For agencies and freelancers",
+  "sell.title": "Win the shop around the corner as a client.",
+  "sell.body": "Glowup turns any old website into a ready pitch pack: before and after, a measured audit, an Instagram post and an email you can send right away. You sell the result, not a promise.",
+  "sell.cta": "See the pitch pack",
+  "sell.note": "Example: Fahrschule Basel",
   "nav.vote": "Vote",
   "hero.a": "Show any Basel business its",
   "hero.b": "better website.",
@@ -108,6 +113,11 @@ const en: Dict = {
 };
 
 const de: Dict = {
+  "sell.kicker": "Für Agenturen und Freelancer",
+  "sell.title": "Gewinne das Geschäft um die Ecke als Kunden.",
+  "sell.body": "Glowup macht aus jeder alten Website eine fertige Pitch-Mappe: Vorher-Nachher, gemessenes Audit, Instagram-Post und eine Mail, die du sofort senden kannst. Du verkaufst das Resultat, nicht ein Versprechen.",
+  "sell.cta": "Pitch-Mappe ansehen",
+  "sell.note": "Beispiel: Fahrschule Basel",
   "nav.vote": "Abstimmen",
   "hero.a": "Zeig jedem Basler Geschäft seine",
   "hero.b": "bessere Website.",
@@ -199,6 +209,11 @@ const de: Dict = {
 };
 
 const fr: Dict = {
+  "sell.kicker": "Pour agences et freelances",
+  "sell.title": "Gagnez le commerce du coin comme client.",
+  "sell.body": "Glowup transforme chaque vieux site en dossier de pitch prêt : avant-après, audit mesuré, post Instagram et un e-mail à envoyer tout de suite. Vous vendez le résultat, pas une promesse.",
+  "sell.cta": "Voir le dossier",
+  "sell.note": "Exemple : Fahrschule Basel",
   "nav.vote": "Voter",
   "hero.a": "Montrez à chaque commerce bâlois son",
   "hero.b": "meilleur site web.",
@@ -290,6 +305,11 @@ const fr: Dict = {
 };
 
 const it: Dict = {
+  "sell.kicker": "Per agenzie e freelance",
+  "sell.title": "Conquista il negozio all'angolo come cliente.",
+  "sell.body": "Glowup trasforma ogni vecchio sito in un dossier di pitch pronto: prima e dopo, audit misurato, post Instagram e un'e-mail da inviare subito. Vendi il risultato, non una promessa.",
+  "sell.cta": "Vedi il dossier",
+  "sell.note": "Esempio: Fahrschule Basel",
   "nav.vote": "Vota",
   "hero.a": "Mostra a ogni attività di Basilea il suo",
   "hero.b": "sito migliore.",
@@ -382,6 +402,11 @@ const it: Dict = {
 
 // Rumantsch Grischun. Short UI strings; long explanations fall back to German where noted by "de" in DICTS.
 const rm: Dict = {
+  "sell.kicker": "Per agenturas e freelancers",
+  "sell.title": "Gudogna la butia al chantun sco clienta.",
+  "sell.body": "Glowup fa ord mintga veglia pagina web in dossier da pitch: avant e suenter, audit mesirà, post d'Instagram ed in e-mail pront per trametter.",
+  "sell.cta": "Guardar il dossier",
+  "sell.note": "Exempel: Fahrschule Basel",
   "nav.vote": "Votar",
   "hero.a": "Mussa a mintga fatschenta da Basilea sia",
   "hero.b": "meglra pagina web.",
@@ -475,6 +500,11 @@ const rm: Dict = {
 
 // Baseldytsch: the default. Missing keys fall back to Swiss Hochdeutsch (de).
 const bs: Dict = {
+  "sell.kicker": "Für Agenture und Freelancer",
+  "sell.title": "Gwinn d Beiz um d Egge als Kundin.",
+  "sell.body": "Glowup macht us jedere alte Websyte e fertigi Pitch-Mappe: Vorhär-Nochhär, gmässene Audit, Instagram-Post und e Mail, wo du grad cha schicke. Du verkaufsch s Resultat, nit e Verspräche.",
+  "sell.cta": "Pitch-Mappe aaluege",
+  "sell.note": "Byspiil: Fahrschuel Basel",
   "nav.vote": "Abstimme",
   "hero.a": "Zeig jedem Basler Lädeli sy",
   "hero.b": "besseri Websyte.",

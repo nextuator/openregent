@@ -72,6 +72,9 @@ Avoid: emoji, icon fonts, stock-looking gradients, fake buttons that go nowhere,
 - Nothing may overflow horizontally at 390 px or 1280 px. Grids use minmax(0, 1fr) columns; flex children that hold text get min-width: 0; never use fixed widths in px wider than 100%; no negative margins that push content off-screen; no width: 100vw.
 - Big headlines use clamp(), e.g. font-size: clamp(var(--text-2xl), 8vw, calc(var(--text-3xl) * 2)), so they fit on a 390 px screen. Long words must wrap.
 - Images: width: 100%; height: auto or a fixed aspect-ratio with object-fit: cover.
+- No decorative lines, rules or bars may cross or touch text: borders only sit between blocks, never through headings or paragraphs. No absolutely positioned decorations over text.
+- Spacing: one rhythm. Sections use padding-block var(--space-section); content sits in a container with max-width and side padding of at least 24px (mobile) and 48px (desktop); never let text touch an edge, a photo or a border.
+- Photos: use object-fit: cover with object-position chosen for the subject (faces, food, the building), never stretch, never upscale a small image to full width (keep small images small, in a frame), no heavy filters or tinted overlays over photos.
 - Display headings: line-height at least 0.9 and never inside overflow: hidden, so accents and umlauts are not clipped.
 
 ## Contrast (hard rules)

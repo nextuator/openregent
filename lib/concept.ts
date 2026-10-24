@@ -11,7 +11,7 @@ export const CONCEPTS = [
     id: "night-menu",
     mode: "dark" as PaletteMode,
     fonts: [["Bodoni Moda", "Hanken Grotesk"], ["Gloock", "DM Sans"]],
-    text: "Night menu: a dark, candle-lit page. A towering high-contrast serif headline, the best photo in a tall arch-shaped frame (border-radius: 999px 999px 0 0), the offer typeset like a fine-dining card with hairline rules and leader dots, a thin var(--color-accent) line as the only ornament.",
+    text: "Night menu: a dark, candle-lit page. A towering high-contrast serif headline, the best photo in a tall arch-shaped frame (border-radius: 999px 999px 0 0), the offer typeset like a fine-dining card with leader dots between item and detail.",
   },
   {
     id: "poster",
@@ -29,7 +29,7 @@ export const CONCEPTS = [
     id: "swiss",
     mode: "crisp" as PaletteMode,
     fonts: [["Schibsted Grotesk", "Schibsted Grotesk"], ["Familjen Grotesk", "Hanken Grotesk"]],
-    text: "Swiss grid: a strict 12-column grid with deliberate asymmetry, oversized section numbers, thick var(--color-primary) rules, flush-left ragged-right type, photos cropped to strong horizontals, lots of white. Feels like a Basel design poster.",
+    text: "Swiss grid: a strict 12-column grid with deliberate asymmetry, oversized section numbers, solid var(--color-primary) blocks between sections (never lines across text), flush-left ragged-right type, photos cropped to strong horizontals, lots of white. Feels like a Basel design poster.",
   },
   {
     id: "bento",
