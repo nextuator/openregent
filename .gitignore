@@ -47,3 +47,5 @@ next-env.d.ts
 
 # local visual review
 /public/_review/
+.env*
+!.env.local.example

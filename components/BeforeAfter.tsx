@@ -44,7 +44,7 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
         </button>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
-        <figure className="order-2 md:order-1">
+        <figure className="order-2 min-w-0 md:order-1">
           <figcaption className="mb-2 font-semibold">Before</figcaption>
           <div className={`${FRAME_H} overflow-y-auto rounded-frame border border-rule bg-sheet`}>
             {run.full ? (
@@ -58,7 +58,7 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
           </div>
           {mode === "mobile" && run.full && <p className="mt-2 text-sm text-graphite">The original was captured at desktop width.</p>}
         </figure>
-        <figure className="order-1 md:order-2">
+        <figure className="order-1 min-w-0 md:order-2">
           <figcaption className="mb-2 font-semibold">After</figcaption>
           <div className="relative">
             <div
@@ -67,6 +67,7 @@ export function BeforeAfter({ run, streamingHtml }: { run: Run; streamingHtml: s
             >
               {html ? (
                 <div
+                  className="absolute left-0 top-0"
                   style={{
                     width: frameW,
                     height: `calc(72vh / ${scale})`,

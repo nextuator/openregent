@@ -72,6 +72,7 @@ Avoid: emoji, icon fonts, stock-looking gradients, fake buttons that go nowhere,
 - Nothing may overflow horizontally at 390 px or 1280 px. Grids use minmax(0, 1fr) columns; flex children that hold text get min-width: 0; never use fixed widths in px wider than 100%; no negative margins that push content off-screen; no width: 100vw.
 - Big headlines use clamp(), e.g. font-size: clamp(var(--text-2xl), 8vw, calc(var(--text-3xl) * 2)), so they fit on a 390 px screen. Long words must wrap.
 - Images: width: 100%; height: auto or a fixed aspect-ratio with object-fit: cover.
+- Display headings: line-height at least 0.9 and never inside overflow: hidden, so accents and umlauts are not clipped.
 
 ## Contrast (hard rules)
 - Every text colour must match its own background. Allowed pairs only:
@@ -251,12 +252,13 @@ export function sanitizeBody(body: string, allowedImages: Set<string>): { body: 
     for (const name of Object.keys((el as { attribs?: Record<string, string> }).attribs ?? {})) {
       if (/^on/i.test(name)) $(el).removeAttr(name);
     }
+    // Only web, phone and mail links; never javascript:, file: or data: (browsers block or warn).
     const href = $(el).attr("href");
-    if (href && /^\s*javascript:/i.test(href)) $(el).attr("href", "#");
+    if (href && !/^\s*(https?:|tel:|mailto:|#)/i.test(href)) $(el).attr("href", "#");
   });
   $("img").each((_, el) => {
     const src = $(el).attr("src") ?? "";
-    if (!allowedImages.has(src)) {
+    if (!allowedImages.has(src) || !/^https?:/i.test(src)) {
       removed.push(`image ${src.slice(0, 80)}`);
       $(el).remove();
     }

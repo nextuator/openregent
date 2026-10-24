@@ -40,7 +40,7 @@ function Frame({ side, kind, src }: { side: string; kind: "image" | "html"; src:
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt={`Homepage ${side}`} className="block w-full" />
       ) : (
-        <div style={{ width: W, height: box.h / scale, transform: `scale(${scale})`, transformOrigin: "top left" }}>
+        <div className="absolute left-0 top-0" style={{ width: W, height: box.h / scale, transform: `scale(${scale})`, transformOrigin: "top left" }}>
           <iframe title={`Homepage ${side}`} srcDoc={src} sandbox="" className="h-full w-full border-0" />
         </div>
       )}
@@ -154,7 +154,7 @@ export function VoteView() {
         {sides.map((s, i) => {
           const letter = i === 0 ? "A" : "B";
           return (
-            <figure key={`${p.id}-${letter}`}>
+            <figure key={`${p.id}-${letter}`} className="min-w-0">
               <figcaption className="mb-2 font-semibold">Homepage {letter}</figcaption>
               <Frame side={letter} kind={s.kind} src={s.src} />
               <button

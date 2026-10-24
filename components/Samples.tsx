@@ -37,11 +37,11 @@ export async function Samples() {
               </Link>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <figure>
+              <figure className="min-w-0">
                 <figcaption className="mb-2 text-sm text-graphite">Before</figcaption>
                 <Thumb src={`/runs/${e.slug}/before.jpg`} alt={`Original homepage of ${e.name}`} />
               </figure>
-              <figure>
+              <figure className="min-w-0">
                 <figcaption className="mb-2 text-sm font-semibold">After</figcaption>
                 <Thumb html={html} alt={`Concept redesign of ${e.name}`} />
               </figure>

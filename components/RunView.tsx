@@ -274,19 +274,23 @@ export function RunView() {
       )}
 
       {error && (
-        <div role="alert" className="mt-6 rounded-control border-[1.5px] border-redline bg-sheet p-4">
-          <p className="font-semibold text-redline">{error}</p>
-          <span className="mt-1 flex flex-wrap gap-4">
-            <Link href="/" className="underline underline-offset-4">
+        <section role="alert" className="mt-8 max-w-2xl rounded-frame border border-rule bg-sheet p-6 sm:p-8">
+          <h2 className="display text-xl">That didn&apos;t work</h2>
+          <p className="mt-2 text-lg text-graphite">{error}</p>
+          <p className="mt-1 text-sm text-graphite">This attempt didn&apos;t count toward your daily glow-ups.</p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link href="/" className="rounded-control border-[1.5px] border-ink bg-ink px-5 py-2.5 font-semibold text-sheet hover:bg-graphite">
               Try another site
             </Link>
-            <Link href="/vote" className="underline underline-offset-4">
+            <Link href="/vote" className="rounded-control border-[1.5px] border-ink bg-sheet px-5 py-2.5 font-semibold hover:bg-paper">
               Vote on glow-ups
             </Link>
-          </span>
-        </div>
+          </div>
+        </section>
       )}
 
+      {(!error || run.full) && (
+      <>
       <div role="tablist" aria-label="Results" className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-b border-rule">
         {TABS.map((t) => (
           <button
@@ -309,6 +313,8 @@ export function RunView() {
           (run.tokens ? <TokensView result={run.tokens} rawCount={run.audit?.colors.distinct ?? 0} /> : <Waiting what="the tokens" />)}
         {tab === "One source" && (run.tokens && run.direction && run.content ? <OneSource run={run} /> : <Waiting what="the post and slide" />)}
       </div>
+      </>
+      )}
     </main>
   );
 }

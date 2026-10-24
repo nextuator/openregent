@@ -29,7 +29,7 @@ function Scaled({ w, h, children, label }: { w: number; h: number; children: Rea
     <figure className="min-w-0">
       <figcaption className="mb-2 font-semibold">{label}</figcaption>
       <div ref={ref} className="relative w-full overflow-hidden rounded-frame border border-rule" style={{ aspectRatio: `${w} / ${h}` }}>
-        <div style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: "top left" }}>{children}</div>
+        <div className="absolute left-0 top-0" style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: "top left" }}>{children}</div>
       </div>
     </figure>
   );

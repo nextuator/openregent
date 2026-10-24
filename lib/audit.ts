@@ -202,7 +202,7 @@ function extractContent($: cheerio.CheerioAPI, base: string, markdown: string): 
     const srcset = $el.attr("srcset") || $el.attr("data-srcset");
     const fromSet = srcset?.split(",").map((s) => s.trim().split(/\s+/)[0]).pop();
     const src = abs($el.attr("data-src") || $el.attr("src") || fromSet, base);
-    if (!src || src.startsWith("data:") || seen.has(src)) return;
+    if (!src || !/^https?:/i.test(src) || seen.has(src)) return;
     const w = parseInt($el.attr("width") ?? "", 10);
     const h = parseInt($el.attr("height") ?? "", 10);
     if ((w && w < 40) || (h && h < 40)) return;

@@ -23,7 +23,8 @@ html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);font-size:var(--text-base);line-height:1.55;padding-top:36px}
 html,body{overflow-x:clip;max-width:100%}
 img,svg,video,iframe{max-width:100%;height:auto;display:block}
-h1,h2,h3,h4,p,li,a{overflow-wrap:break-word;hyphens:auto}
+p,li,a{overflow-wrap:break-word}
+h1,h2,h3,h4{hyphens:auto;overflow-wrap:normal}
 header,main,section,footer,nav,div{min-width:0}
 a{color:inherit}
 h1,h2,h3,h4{font-family:var(--font-display);line-height:1.1;margin:0 0 .5em}

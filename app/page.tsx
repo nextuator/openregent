@@ -71,7 +71,7 @@ export default function Home() {
         <Learning />
       </section>
 
-      <section className="mb-20 grid items-center gap-6 rounded-frame border border-rule bg-sheet p-8 sm:grid-cols-[1fr_auto]">
+      <section className="grid items-center gap-6 rounded-frame border border-rule bg-sheet p-6 sm:grid-cols-[1fr_auto] sm:p-8">
         <div>
           <h2 className="display text-2xl">Real site or redesign?</h2>
           <p className="mt-2 max-w-[60ch] text-graphite">Two homepages of the same business, side by side. One is real, one is a Glowup concept. Vote for the one that looks better.</p>
@@ -81,6 +81,13 @@ export default function Home() {
           Start voting
         </Link>
       </section>
+
+      <footer className="mt-16 flex flex-wrap items-baseline justify-between gap-4 border-t border-rule py-8 text-sm text-graphite">
+        <span>
+          <span className="display text-base text-ink">Glowup</span> · Vibe Code Fest Basel 2026
+        </span>
+        <span>Concept redesigns only. Not affiliated with the businesses shown.</span>
+      </footer>
     </main>
   );
 }

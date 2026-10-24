@@ -37,7 +37,7 @@ export async function limits(req: Request, host?: string): Promise<{ ipUsed: num
   return { ipUsed: ipUsed || 0, ipLimit: IP_LIMIT, siteUsed: siteUsed ?? null, siteLimit: SITE_LIMIT };
 }
 
-/** Call once per new live run (in /api/analyze), before any paid work. */
+/** Call before any paid work (in /api/analyze). Checks only; countRun() counts on success. */
 export async function checkRunCap(req: Request, host: string) {
   const l = await limits(req, host);
   if ((l.siteUsed ?? 0) >= SITE_LIMIT) {
@@ -47,6 +47,10 @@ export async function checkRunCap(req: Request, host: string) {
     void notify("soft_cap", `A visitor used all ${IP_LIMIT} live glow-ups for today.`);
     throw new GuardError("rate_limited", `You've used your ${IP_LIMIT} live glow-ups for today. The vote is always open.`, 429);
   }
+}
+
+/** Counts a live glow-up against the visitor's daily limit. Called only when a redesign finished, so errors are free. */
+export async function countRun(req: Request) {
   const k = ipKey(ipOf(req));
   const n = await redis<number>(["INCR", k]).catch(() => 0);
   if (n === 1) await redis(["EXPIRE", k, 2 * 86400]).catch(() => 0);

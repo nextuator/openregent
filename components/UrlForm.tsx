@@ -36,7 +36,7 @@ export function UrlForm({ initial = "" }: { initial?: string }) {
           setError("");
         }}
         aria-describedby={error ? "url-error" : undefined}
-        className="h-14 flex-1 rounded-control border-[1.5px] border-ink bg-sheet px-4 text-lg placeholder:text-graphite"
+        className="h-14 w-full min-w-0 rounded-control sm:flex-1 border-[1.5px] border-ink bg-sheet px-4 text-lg placeholder:text-graphite"
       />
       <button
         type="submit"

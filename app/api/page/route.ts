@@ -1,5 +1,5 @@
 import { assembleDocument } from "@/lib/assemble";
-import { checkDemoKey, guardResponse, siteKey } from "@/lib/guard";
+import { checkDemoKey, countRun, guardResponse, siteKey } from "@/lib/guard";
 import { LlmError, LlmUnavailableError, llmErrorResponse, provider } from "@/lib/llm";
 import { notify } from "@/lib/notify";
 import { page, type PageEvent } from "@/lib/page";
@@ -31,7 +31,10 @@ export async function POST(req: Request) {
         const stats = parseStats(hgetallToObject(await redis<string[]>(["HGETALL", "bandit"]).catch(() => [] as string[])));
         for await (const ev of page(tokens, direction, content, siteUrl, stats)) {
           send(ev);
-          if (ev.type === "final" && runId) await saveForVote(runId, direction, content, tokens, ev.css, ev.body);
+          if (ev.type === "final") {
+            await countRun(req);
+            if (runId) await saveForVote(runId, direction, content, tokens, ev.css, ev.body);
+          }
         }
       } catch (e) {
         if (e instanceof LlmError || e instanceof LlmUnavailableError) {

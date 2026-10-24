@@ -17,7 +17,7 @@ export const CONCEPTS = [
     id: "poster",
     mode: "brand" as PaletteMode,
     fonts: [["Anton", "Familjen Grotesk"], ["Bebas Neue", "Schibsted Grotesk"]],
-    text: "Street poster: the hero is a full-width var(--color-primary) block with a condensed headline set huge (fills the width, clamped), the photo as a duotone (filter: grayscale(1) contrast(1.1) with a var(--color-primary) layer using mix-blend-mode: multiply), stacked bold blocks, a ticker-like strip of opening hours.",
+    text: "Street poster: the hero is a full-width var(--color-primary) block with a condensed headline set huge (fills the width, clamped), the best photo in full colour, cropped hard into a tall panel that overlaps the colour block, stacked bold blocks, a ticker-like strip of opening hours.",
   },
   {
     id: "magazine",

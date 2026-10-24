@@ -1,18 +1,20 @@
 [
   {
-    "slug": "stadtkeller-basel-ch",
-    "url": "https://www.stadtkeller-basel.ch/",
-    "name": "Stadtkeller Basel"
+    "slug": "gifthuettli-ch",
+    "url": "https://www.gifthuettli.ch/",
+    "name": "Restaurant Gifthüttli Basel",
+    "sample": true
   },
   {
     "slug": "torstuebli-ch",
     "url": "https://www.torstuebli.ch/",
-    "name": "Torstübli"
+    "name": "Torstübli",
+    "sample": true
   },
   {
-    "slug": "restaurant-schnabel-ch",
-    "url": "https://www.restaurant-schnabel.ch/",
-    "name": "Restaurant Schnabel"
+    "slug": "stadtkeller-basel-ch",
+    "url": "https://www.stadtkeller-basel.ch/",
+    "name": "Stadtkeller Basel"
   },
   {
     "slug": "baeckerei-bumann-ch",
