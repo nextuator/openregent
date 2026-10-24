@@ -1,5 +1,5 @@
 {
-  description = "Glowup dev shell: Node.js, git and the Vercel CLI";
+  description = "Glowup dev shell: Node.js, git, GitHub CLI and the Vercel CLI";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -16,7 +16,7 @@
           '';
         in {
           default = pkgs.mkShell {
-            packages = [ pkgs.nodejs_24 pkgs.git pkgs.curl vercel ];
+            packages = [ pkgs.nodejs_24 pkgs.git pkgs.gh pkgs.curl vercel ];
             shellHook = ''
               export NEXT_TELEMETRY_DISABLED=1
               echo "Glowup shell: node $(node -v), run 'vercel login' then 'npm run dev'"
