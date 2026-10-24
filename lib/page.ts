@@ -366,6 +366,7 @@ Name selectors and values. Also flag any text-on-background with weak contrast, 
 
 export async function* page(t: TokensResult, d: Direction, c: Content, siteUrl: string, stats?: ConceptStats): AsyncIterable<PageEvent> {
   const allowed = new Set([...c.images.map((i) => i.src), ...(d.keep.logoUrl ? [d.keep.logoUrl] : [])]);
+  const t0 = Date.now();
 
   // 1. Art direction
   yield { type: "status", message: "Writing the art-direction brief." };
@@ -384,10 +385,14 @@ export async function* page(t: TokensResult, d: Direction, c: Content, siteUrl: 
   // 3. Critic: deterministic lint + token rules + a critic model
   const first = describe(findViolations(css, body, t));
   const slop = slopLint(css, body);
+  // Time budget: Vercel stops functions at 300 s. If the first version took long, ship it (tokens still enforced below).
+  const skipRevision = Date.now() - t0 > 150_000;
+  if (skipRevision) yield { type: "status", message: "Revising skipped to stay within time." };
   yield { type: "status", message: `Critic review (${first.length} token issues, ${slop.length} template tells found by code).` };
-  const critique = (await complete({ system: CRITIC_SYSTEM, prompt: criticPrompt(brief, css, body, slop, first), tier: "smart", maxTokens: 2500, effort: "low" })).trim();
+  const critique = skipRevision ? "" : (await complete({ system: CRITIC_SYSTEM, prompt: criticPrompt(brief, css, body, slop, first), tier: "smart", maxTokens: 2500, effort: "low" })).trim();
 
   // 4. Revision, streamed
+  if (!skipRevision) {
   yield { type: "status", message: "Revising with the critic's notes." };
   yield { type: "restart" };
   let raw2 = "";
@@ -411,6 +416,7 @@ Return the complete improved page: <style>…</style> then <header>…</footer>.
   if (parts.css && parts.body) {
     css = parts.css;
     body = parts.body;
+  }
   }
 
   // 5. Enforce tokens in code

@@ -52,7 +52,11 @@ export async function capture(rawUrl: string): Promise<Capture> {
   const url = normalizeUrl(rawUrl);
   const t0 = Date.now();
 
-  const res = await fetch(ENDPOINT, {
+  // Gaffa plan allows one capture at a time: when busy, wait and retry instead of failing (queue up to ~90 s).
+  let res: Response | undefined;
+  let json: GaffaResponse = {};
+  for (let attempt = 0; attempt < 12; attempt++) {
+  res = await fetch(ENDPOINT, {
     method: "POST",
     headers: { "X-API-Key": key, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -77,8 +81,15 @@ export async function capture(rawUrl: string): Promise<Capture> {
   }).catch((e) => {
     throw new CaptureError("Gaffa request failed", String(e));
   });
-
-  const json = (await res.json().catch(() => ({}))) as GaffaResponse;
+  json = (await res.json().catch(() => ({}))) as GaffaResponse;
+  const reason = `${json.error?.message ?? ""} ${json.data?.error_reason ?? ""} ${json.error?.code ?? ""}`;
+  if (/concurrent|active request|too many|rate/i.test(reason) || res.status === 429) {
+    await new Promise((r) => setTimeout(r, 7000 + Math.random() * 3000));
+    continue;
+  }
+  break;
+  }
+  if (!res) throw new CaptureError("Gaffa request failed");
   const d = json.data;
   if (!res.ok || !d || d.state !== "completed" || d.error) {
     throw new CaptureError(
