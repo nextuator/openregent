@@ -238,7 +238,7 @@ function extractContent($: cheerio.CheerioAPI, base: string, markdown: string): 
   const hours: string[] = [];
   lines.forEach((l, i) => {
     if (l.length > 140) return;
-    if (POSTCODE_RE.test(l) && address.length < 4) {
+    if (POSTCODE_RE.test(l) && l.length < 60 && !/bewertung|review|rating|avis|stern|sterne|kunden/i.test(l) && address.length < 4) {
       const prev = lines[i - 1];
       if (prev && STREET_RE.test(prev) && !address.includes(prev)) address.push(prev);
       if (!address.includes(l)) address.push(l);
