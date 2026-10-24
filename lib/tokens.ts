@@ -75,6 +75,9 @@ export function fixContrast(t: TokenSet): ContrastCheck[] {
   run("text on bg", "text", "bg", Math.max(black, white) >= 7 ? 7 : 4.5, false);
   run("text-muted on bg", "textMuted", "bg", 4.5, false);
   run("text on surface", "text", "surface", 4.5, false);
+  // Brand colours must at least work as large text and accents on the page (keep hue, move lightness).
+  run("primary on bg", "primary", "bg", 3, false);
+  run("accent on bg", "accent", "bg", 3, false);
   run("on-primary on primary", "onPrimary", "primary", 4.5, true);
   run("on-accent on accent", "onAccent", "accent", 4.5, true);
   return checks;

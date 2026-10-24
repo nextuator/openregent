@@ -1,5 +1,6 @@
 import { audit } from "@/lib/audit";
 import { randomUUID } from "crypto";
+import sharp from "sharp";
 import { capture, CaptureError, normalizeUrl } from "@/lib/gaffa";
 import { checkDemoKey, checkRunCap, guardResponse } from "@/lib/guard";
 import { notify } from "@/lib/notify";
@@ -37,7 +38,14 @@ export async function POST(req: Request) {
         console.log(`[analyze] captured ${cap.finalUrl} in ${cap.ms} ms, credits ${cap.credits}`);
         const viewport = `data:image/jpeg;base64,${cap.viewportJpeg.toString("base64")}`;
         // Keep the original's first viewport for the blind vote (30 days).
-        await redis(["SET", `cap:${runId}`, JSON.stringify({ host: new URL(cap.finalUrl).hostname, viewport }), "EX", 30 * 86400]).catch(() => 0);
+        const voteFull = await sharp(cap.fullJpeg).resize({ width: 960 }).jpeg({ quality: 60, mozjpeg: true }).toBuffer();
+        await redis([
+          "SET",
+          `cap:${runId}`,
+          JSON.stringify({ host: new URL(cap.finalUrl).hostname, viewport, full: `data:image/jpeg;base64,${voteFull.toString("base64")}` }),
+          "EX",
+          30 * 86400,
+        ]).catch(() => 0);
         send({
           type: "captured",
           runId,

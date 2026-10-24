@@ -18,27 +18,32 @@ const seen = (): string[] => {
   }
 };
 
-const W = 1440, H = 703;
+const W = 1440;
 
+/** Both sides scroll the same way, with hidden scrollbars, so neither gives itself away. */
 function Frame({ side, kind, src }: { side: string; kind: "image" | "html"; src: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.4);
+  const [box, setBox] = useState({ w: 600, h: 500 });
   useEffect(() => {
     if (!ref.current) return;
-    const ro = new ResizeObserver(([e]) => setScale(e.contentRect.width / W));
+    const ro = new ResizeObserver(([e]) => setBox({ w: e.contentRect.width, h: e.contentRect.height }));
     ro.observe(ref.current);
     return () => ro.disconnect();
   }, []);
+  const scale = box.w / W;
   return (
-    <div ref={ref} className="relative w-full overflow-hidden rounded-frame border border-rule bg-sheet" style={{ aspectRatio: `${W} / ${H}` }}>
-      <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left" }} className="pointer-events-none">
-        {kind === "image" ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt={`Homepage ${side}`} className="block h-full w-full object-cover object-top" />
-        ) : (
-          <iframe title={`Homepage ${side}`} srcDoc={src} sandbox="" tabIndex={-1} scrolling="no" className="h-full w-full border-0" />
-        )}
-      </div>
+    <div
+      ref={ref}
+      className={`relative h-[62vh] w-full overflow-x-hidden rounded-frame border border-rule bg-sheet [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${kind === "image" ? "overflow-y-auto" : "overflow-y-hidden"}`}
+    >
+      {kind === "image" ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={`Homepage ${side}`} className="block w-full" />
+      ) : (
+        <div style={{ width: W, height: box.h / scale, transform: `scale(${scale})`, transformOrigin: "top left" }}>
+          <iframe title={`Homepage ${side}`} srcDoc={src} sandbox="" className="h-full w-full border-0" />
+        </div>
+      )}
     </div>
   );
 }
@@ -136,7 +141,7 @@ export function VoteView() {
     <div>
       <p className="max-w-[70ch] text-lg">
         Each pair shows the same business twice. One is its real homepage, the other is a concept redesign by Glowup, not affiliated with the business. Pick the one
-        that looks better. We reveal which is which at the end.
+        that looks better. Scroll inside each page to see all of it. We reveal which is which at the end.
       </p>
       <div className="mt-10 flex flex-wrap items-baseline justify-between gap-4">
         <h2 className="display text-2xl">{p.brand}</h2>

@@ -12,7 +12,7 @@ export const CONCEPTS = [
   {
     id: "poster",
     fonts: [["Bricolage Grotesque", "Rubik"], ["Space Grotesk", "Work Sans"]],
-    text: "Swiss poster: giant display type that bleeds to the edges, a bold colour block in var(--color-primary) behind the hero, the photo cropped hard into a tall panel, tight uppercase labels for sections.",
+    text: "Swiss poster: giant display type that fills the width (clamped so it never overflows), a bold colour block in var(--color-primary) behind the hero, the photo cropped hard into a tall panel, tight uppercase labels for sections.",
   },
   {
     id: "bento",

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Limits } from "@/components/Limits";
 import { ProofCard } from "@/components/ProofCard";
+import { Samples } from "@/components/Samples";
+import { VoteTally } from "@/components/VoteTally";
 import { UrlForm } from "@/components/UrlForm";
 
 const METHOD = [
@@ -55,10 +57,13 @@ export default function Home() {
         </ol>
       </section>
 
+      <Samples />
+
       <section className="mb-20 grid items-center gap-6 rounded-frame border border-rule bg-sheet p-8 sm:grid-cols-[1fr_auto]">
         <div>
           <h2 className="display text-2xl">Real site or redesign?</h2>
           <p className="mt-2 max-w-[60ch] text-graphite">Two homepages of the same business, side by side. One is real, one is a Glowup concept. Vote for the one that looks better.</p>
+          <VoteTally />
         </div>
         <Link href="/vote" className="rounded-control border-[1.5px] border-ink bg-ink px-6 py-3 text-center font-semibold text-sheet hover:bg-graphite">
           Start voting

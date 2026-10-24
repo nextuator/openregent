@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { colorsNamed } from "culori";
+import { colorsNamed, wcagContrast } from "culori";
 import { splitParts } from "./assemble";
 import { pickConcept } from "./concept";
 import { complete, completeStream } from "./llm";
@@ -65,6 +65,18 @@ Commit to this concept. Make the hero memorable: the headline can go up to calc(
 Vary section layouts (do not stack identical centred blocks). Use the primary colour with intent (one or two strong moments), the accent sparingly.
 Avoid: emoji, icon fonts, stock-looking gradients, fake buttons that go nowhere, lorem ipsum, centred-everything layouts, generic "Welcome to our website" phrasing.
 
+## Layout safety (hard rules)
+- Nothing may overflow horizontally at 390 px or 1280 px. Grids use minmax(0, 1fr) columns; flex children that hold text get min-width: 0; never use fixed widths in px wider than 100%; no negative margins that push content off-screen; no width: 100vw.
+- Big headlines use clamp(), e.g. font-size: clamp(var(--text-2xl), 8vw, calc(var(--text-3xl) * 2)), so they fit on a 390 px screen. Long words must wrap.
+- Images: width: 100%; height: auto or a fixed aspect-ratio with object-fit: cover.
+
+## Contrast (hard rules)
+- Every text colour must match its own background. Allowed pairs only:
+  text or text-muted on bg or surface; on-primary on primary; on-accent on accent.
+- Whenever you set a background on an element that contains text, set the matching color on the same rule.
+- Never put text directly on a photo. Put it on a solid panel (bg, surface or primary) with the matching text colour.
+- Use primary and accent as text colour only for large headings or underlines on bg, never for body text.
+
 ## Build
 Sections, each omitted when there is no data for it:
 1. header: logo (img) or the name, plus up to 5 nav anchors linking to the sections below.
@@ -89,6 +101,7 @@ Output now: <style>…</style> then <header>…</footer>.`;
 
 const NAMED = new Set(Object.keys(colorsNamed));
 const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\([^)]*\)/gi;
+
 const HEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g;
 
 type Violation = { where: "css" | "inline"; prop: string; literal: string };
@@ -115,8 +128,63 @@ function decls(css: string): { prop: string; value: string }[] {
   return out;
 }
 
-export function findViolations(css: string, body: string): Violation[] {
+/* Same-rule contrast check: a rule that sets both a background token and a text colour token must be a readable pair. */
+const VAR_HEX = (t: TokensResult, name: string): string | undefined => {
+  const m = t.css.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"));
+  return m?.[1];
+};
+
+const CONTAINER_TEXT = new Set(["color-on-primary", "color-on-accent", "color-bg", "color-surface"]);
+/** WCAG AA: 3:1 for large headings, 4.5:1 for everything else. */
+const minRatio = (selector: string) => (/(^|[\s,>.#-])(h1|h2|display|headline|hero-title|title)\b/i.test(selector) ? 3 : 4.5);
+
+export function contrastViolations(css: string, t: TokensResult): Violation[] {
   const out: Violation[] = [];
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const m of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const body = m[2];
+    const bg = body.match(/background(?:-color)?\s*:[^;]*var\(--(color-[\w-]+)\)/i)?.[1];
+    const fg = body.match(/(?:^|;|\s)color\s*:\s*var\(--(color-[\w-]+)\)/i)?.[1];
+    if (!fg) continue;
+    // Container colours (on-primary, on-accent, bg, surface as text) get their background from a parent: only check same-rule pairs.
+    if (!bg && CONTAINER_TEXT.has(fg)) continue;
+    const min = minRatio(m[1]);
+    // Without its own background, text sits on the page: check it against bg and surface.
+    const grounds = bg ? [bg] : ["color-bg", "color-surface"];
+    for (const g of grounds) {
+      const b = VAR_HEX(t, g), f = VAR_HEX(t, fg);
+      if (!b || !f) continue;
+      const ratio = wcagContrast(f, b);
+      if (ratio < min) {
+        out.push({ where: "css", prop: "contrast", literal: `${m[1].trim()}: var(--${fg}) on var(--${g}) is ${ratio.toFixed(2)}:1, needs ${min}:1` });
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/** Swaps the text colour in low-contrast rules for the token with the best contrast on that background. */
+function fixContrastRules(css: string, t: TokensResult, fixed: string[]): string {
+  const candidates = ["color-text", "color-text-muted", "color-on-primary", "color-on-accent", "color-bg"];
+  return css.replace(/([^{}]+)\{([^{}]*)\}/g, (whole, sel: string, body: string) => {
+    const bgTok = body.match(/background(?:-color)?\s*:[^;]*var\(--(color-[\w-]+)\)/i)?.[1];
+    const fg = body.match(/(?:^|;|\s)color\s*:\s*var\(--(color-[\w-]+)\)/i)?.[1];
+    if (!fg || (!bgTok && CONTAINER_TEXT.has(fg))) return whole;
+    const min = minRatio(sel);
+    const bg = bgTok ?? "color-bg";
+    const b = VAR_HEX(t, bg), f = VAR_HEX(t, fg);
+    const s = VAR_HEX(t, "color-surface");
+    const ok = (hex: string) => wcagContrast(hex, b!) >= min && (bgTok || !s || wcagContrast(hex, s) >= min);
+    if (!b || !f || ok(f)) return whole;
+    const best = candidates.map((c) => ({ c, r: VAR_HEX(t, c) ? wcagContrast(VAR_HEX(t, c)!, b) : 0 })).sort((x, y) => y.r - x.r)[0];
+    fixed.push(`${sel.trim()}: var(--${fg}) → var(--${best.c}) on var(--${bg}) (${best.r.toFixed(1)}:1)`);
+    return `${sel}{${body.replace(/((?:^|;|\s)color\s*:\s*)var\(--color-[\w-]+\)/i, `$1var(--${best.c})`)}}`;
+  });
+}
+
+export function findViolations(css: string, body: string, t?: TokensResult): Violation[] {
+  const out: Violation[] = t ? contrastViolations(css, t) : [];
   for (const d of decls(css)) if (!d.prop.startsWith("--")) scanValue(d.prop, d.value, "css", out);
   const $ = cheerio.load(body, null, false);
   $("[style]").each((_, el) => {
@@ -165,7 +233,7 @@ function autofix(css: string, body: string, t: TokensResult): { css: string; bod
   $("style").each((_, el) => {
     $(el).text(fixCss($(el).html() ?? ""));
   });
-  return { css: fixCss(css), body: $.html(), fixed };
+  return { css: fixContrastRules(fixCss(css), t, fixed), body: $.html(), fixed };
 }
 
 /** Removes anything unsafe or off-limits: scripts, handlers, foreign images, embeds. */
@@ -212,7 +280,7 @@ export async function* page(t: TokensResult, d: Direction, c: Content, siteUrl: 
   if (!css && !body) throw new Error("The design model returned no page");
   const allowed = new Set([...c.images.map((i) => i.src), ...(d.keep.logoUrl ? [d.keep.logoUrl] : [])]);
 
-  const first = describe(findViolations(css, body));
+  const first = describe(findViolations(css, body, t));
   let after = first;
   let retried = false;
   if (first.length) {
@@ -224,7 +292,7 @@ export async function* page(t: TokensResult, d: Direction, c: Content, siteUrl: 
       css = parts.css;
       body = parts.body;
     }
-    after = describe(findViolations(css, body));
+    after = describe(findViolations(css, body, t));
   }
   let autoFixed: string[] = [];
   if (after.length) {
